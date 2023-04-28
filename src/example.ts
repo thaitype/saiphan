@@ -1,4 +1,6 @@
-import { WorkflowJobDetail, defineWorkflow, initWorkflow, jobs } from './main';
+import { initWorkflow, jobs } from './main';
+
+const t: any = undefined; // typed-actions helper.
 
 const w = initWorkflow({
   name: 'my-workflow',
@@ -18,7 +20,8 @@ const w = initWorkflow({
 
 const workflows = jobs({
   error: {
-    if: `contains(github.event.pull_request.title, '"') == true`,
+    // if: `contains(github.event.pull_request.title, '"') == true`,
+    if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
     runsOn: 'ubuntu-latest',
     steps: [
       {
@@ -28,7 +31,7 @@ const workflows = jobs({
         name: 'Download artifact from build job',
         uses: 'actions/download-artifact@v2',
         with: {
-          name: '${{ env.artifact_web_name }}',
+          name: t.env('artifact_web_name'), // Compile to '${{ env.artifact_web_name }}'
         },
       },
       {
@@ -36,10 +39,10 @@ const workflows = jobs({
         id: 'get-publish-profile',
         uses: 'mildronize/actions-az-cli/webapp/deployment/list-publishing-profiles@v1',
         with: {
-          azure_credentials: '${{ secrets.AZURE_CREDENTIAL }}',
-          name: '${{ env.name }}',
-          slot: '${{ env.slot_name }}',
-          resource_group: '${{ env.resource_group }}',
+          azure_credentials: t.secrets('AZURE_CREDENTIAL'), // Compile to '${{ secrets.AZURE_CREDENTIAL }}'
+          name: t.env('name'), // Compile to '${{ env.name }}'
+          slot: t.env('slot_name'), // Compile to '${{ env.slot_name }}'
+          resource_group: '${{ env.resource_group }}', // Compile to '${{ env.resource_group }}'
         },
       },
       {
@@ -47,16 +50,21 @@ const workflows = jobs({
         id: 'deploy-to-webapp',
         uses: 'azure/webapps-deploy@v2',
         with: {
-          'app-name': '${{ matrix.app_name }}',
-          'publish-profile': '${{ steps.get-publish-profile.outputs.publish_profile }}',
-          package: '.',
-          'slot-name': '${{ matrix.slot_name }}',
+          'app-name': t.env('app_name'), // compile to '${{ env.app_name }}'
+          'publish-profile': t.steps('get-publish-profile').outputs('publish_profile'), // Compile to '${{ steps.get-publish-profile.outputs.publish_profile }}'
+          'package': '.',
+          'slot-name': t.env('slot_name'), // compile to '${{ env.slot_name }}'
         },
+      },
+      {
+        name: `Save stats ${t.env('name')}`, // Compile to 'Save stats ${{ env.name }}'
+        if: t.always(), // if: 'always()',
+        run: 'node ./save-stats.js',
       },
     ],
   },
   build: {
-    if: `contains(github.event.pull_request.title, '"') == false`,
+    if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
     runsOn: 'ubuntu-latest',
     steps: [
       {
@@ -67,17 +75,4 @@ const workflows = jobs({
   },
 });
 
-
-// const a: MyString = 'hello';
-
-
-
-function demo(){
-  return ({ env, }) => {
-    console.log(env.artifact_web_name);
-  };
-}
-
 export default workflows;
-
-
