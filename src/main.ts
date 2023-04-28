@@ -15,48 +15,62 @@ export type PushEvent = {
   };
 };
 
-export interface WorkflowOption {
-  name: string;
+export interface WorkflowOption<T extends Record<string, string>> {
+  name?: string;
   on: PullRequestEvent | PushEvent;
+  env?: T;
 }
 
-export function initWorkflow(option: WorkflowOption) {
+export interface WorkflowJob {
+  [key: string]: WorkflowJobDetail;
+}
+
+export interface WorkflowJobDetail {
+  if: string;
+  runsOn: string;
+  needs?: string[];
+  timeoutMinutes?: number;
+  environment?: {
+    name?: string;
+    url?: string;
+  },
+  strategy?: {
+    failFast: boolean;
+    matrix?: any;
+  },
+  outputs?: Record<string, string>;
+  steps: (WorkflowStepRun | WorkflowStepUses)[];
+}
+
+export interface WorkflowStepBase {
+  name?: string;
+  if?: string;
+  id?: string;
+}
+
+export interface WorkflowStepRun extends WorkflowStepBase {
+  run: string;
+}
+
+export interface WorkflowStepUses extends WorkflowStepBase {
+  uses: string;
+  with?: Record<string, string>;
+}
+
+export function initWorkflow<T extends Record<string, string>>(
+  option: WorkflowOption<T>
+) {
+  return option
+}
+
+export const jobs = (jobs: WorkflowJob) => {};
+
+export function defineWorkflow(w: ReturnType<typeof initWorkflow>) {
   return {
-    jobs: (jobs: any) => {},
+    // env: w.jobs(),
   };
 }
 
-const w = initWorkflow({
-  name: 'my-workflow',
-  on: {
-    pullRequest: {
-      types: ['opened', 'synchronize'],
-      branches: ['preview/develop'],
-    },
-  },
-});
+export class Job {
 
-const workflows = w.jobs({
-  error: {
-    if: `contains(github.event.pull_request.title, '"') == true`,
-    runsOn: 'ubuntu-latest',
-    steps: [
-      {
-        name: 'Checkout',
-        run: "echo 'Hello World!'",
-      },
-    ],
-  },
-  build: {
-    if: `contains(github.event.pull_request.title, '"') == false`,
-    runsOn: 'ubuntu-latest',
-    steps: [
-      {
-        name: 'Checkout',
-        run: "echo 'Hello World!'",
-      },
-    ],
-  },
-});
-
-export default workflows;
+}
