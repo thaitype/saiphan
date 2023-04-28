@@ -1,0 +1,27 @@
+{
+  "name": "simple-typescript-boilerplate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "test": "ava",
+    "test:watch": "ava --watch"
+  },
+  "keywords": [],
+  "author": "Thada Wangthammang",
+  "license": "MIT",
+  "devDependencies": {
+    "ava": "^5.2.0",
+    "tsx": "^3.12.3",
+    "esbuild-register": "^3.4.2"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "esbuild-register"
+    ]
+  }
+}
