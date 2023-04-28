@@ -1,4 +1,4 @@
-import { defineWorkflow, initWorkflow, jobs } from './main';
+import { WorkflowJobDetail, defineWorkflow, initWorkflow, jobs } from './main';
 
 const w = initWorkflow({
   name: 'my-workflow',
@@ -15,8 +15,6 @@ const w = initWorkflow({
     resource_group: 'my-resource-group',
   },
 });
-
-const workflow = defineWorkflow(w);
 
 const workflows = jobs({
   error: {
@@ -69,4 +67,17 @@ const workflows = jobs({
   },
 });
 
+
+// const a: MyString = 'hello';
+
+
+
+function demo(){
+  return ({ env, }) => {
+    console.log(env.artifact_web_name);
+  };
+}
+
 export default workflows;
+
+

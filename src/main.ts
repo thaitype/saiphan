@@ -33,14 +33,16 @@ export interface WorkflowJobDetail {
   environment?: {
     name?: string;
     url?: string;
-  },
+  };
   strategy?: {
     failFast: boolean;
     matrix?: any;
-  },
+  };
   outputs?: Record<string, string>;
-  steps: (WorkflowStepRun | WorkflowStepUses)[];
+  steps: WorkflowStep[];
 }
+
+export type WorkflowStep = WorkflowStepRun | WorkflowStepUses;
 
 export interface WorkflowStepBase {
   name?: string;
@@ -57,13 +59,11 @@ export interface WorkflowStepUses extends WorkflowStepBase {
   with?: Record<string, string>;
 }
 
-export function initWorkflow<T extends Record<string, string>>(
-  option: WorkflowOption<T>
-) {
-  return option
+export function initWorkflow<T extends Record<string, string>>(option: WorkflowOption<T>) {
+  return option;
 }
 
-export const jobs = (jobs: WorkflowJob) => {};
+export const jobs = (jobs: WorkflowJob) => jobs;
 
 export function defineWorkflow(w: ReturnType<typeof initWorkflow>) {
   return {
@@ -71,6 +71,4 @@ export function defineWorkflow(w: ReturnType<typeof initWorkflow>) {
   };
 }
 
-export class Job {
-
-}
+export class Job {}
