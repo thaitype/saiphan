@@ -1,30 +1,26 @@
-export function sum(num1: number, num2: number): number {
-  return num1 + num2;
-}
-
 // https://github.com/cicadahq/cicada
 // https://dagger.io/blog/nodejs-sdk
 
-type PullRequestEvent = {
+export type PullRequestEvent = {
   pullRequest: {
     types: string[];
     branches: string[];
   };
 };
 
-type PushEvent = {
+export type PushEvent = {
   push: {
     types: string[];
     branches: string[];
   };
 };
 
-interface WorkflowOption {
+export interface WorkflowOption {
   name: string;
   on: PullRequestEvent | PushEvent;
 }
 
-function initWorkflow(option: WorkflowOption) {
+export function initWorkflow(option: WorkflowOption) {
   return {
     jobs: (jobs: any) => {},
   };
@@ -62,3 +58,5 @@ const workflows = w.jobs({
     ],
   },
 });
+
+export default workflows;
