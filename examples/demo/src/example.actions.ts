@@ -20,10 +20,20 @@ const t = initWorkflow(typedWorkflow, {
 });
 
 const workflows = t.jobs({
+  prepare: {
+    runsOn: 'ubuntu-latest',
+    steps: [
+      {
+        name: 'Checkout',
+        uses: 'actions/checkout@v2',
+      }
+    ]
+  },
   deploy: {
     // if: `contains(github.event.pull_request.title, '"') == true`,
     if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
     runsOn: 'ubuntu-latest',
+    needs: ['prepare'],
     steps: [
       {
         run: "echo 'Hello World!'",
@@ -66,6 +76,7 @@ const workflows = t.jobs({
   },
   build: {
     if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
+    needs: ['prepare'],
     runsOn: 'ubuntu-latest',
     steps: [
       {

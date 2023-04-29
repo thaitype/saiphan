@@ -12,7 +12,8 @@
   "author": "Thada Wangthammang",
   "license": "MIT",
   "dependencies": {
-    "saiphan": "workspace:*"
+    "saiphan": "workspace:*",
+    "spnx": "workspace:*"
   },
   "ava": {
     "extensions": [

@@ -1,6 +1,8 @@
 // https://github.com/cicadahq/cicada
 // https://dagger.io/blog/nodejs-sdk
 
+import { TypedWorkflow } from "./spnx.types";
+
 export type AllowType = string | boolean;
 
 export type PullRequestEvent = {
@@ -23,14 +25,14 @@ export interface WorkflowOption<T extends Record<string, string>> {
   env?: T;
 }
 
-export interface WorkflowJob {
-  [key: string]: WorkflowJobDetail;
+export interface WorkflowJob<TNeeds extends keyof any> {
+  [key: string]: WorkflowJobDetail<TNeeds>;
 }
 
-export interface WorkflowJobDetail {
-  if: string;
+export interface WorkflowJobDetail<TNeeds extends keyof any> {
+  if?: string;
   runsOn: string;
-  needs?: string[];
+  needs?: TNeeds[];
   timeoutMinutes?: number;
   environment?: {
     name?: string;
@@ -69,9 +71,13 @@ function wrapVariable(variable: string) {
   return `\${{ ${variable} }}`;
 }
 
-export function initWorkflow<TEnv extends Record<string, string>>(typedWorkflow: any, option: WorkflowOption<TEnv>) {
+
+export function initWorkflow<
+  TEnv extends Record<string, string>,
+  TJobId extends string
+>(typedWorkflow: TypedWorkflow<TJobId>, option: WorkflowOption<TEnv>) {
   return {
-    jobs: (jobs: WorkflowJob) => jobs,
+    jobs: (jobs: WorkflowJob<TJobId>) => jobs,
     // TODO: Transform to AST later
     env: (key: keyof TEnv) => wrapVariable(`env.${String(key)}`),
     secrets: (key: string) => wrapVariable(`secrets.${String(key)}`),

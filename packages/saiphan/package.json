@@ -6,6 +6,7 @@
   "types": "dist/main.d.ts",
   "scripts": {
     "build": "tsup src/main.ts --dts",
+    "dev": "nodemon --watch src --ext ts --exec 'npm run build'",
     "test": "ava",
     "test:watch": "ava --watch"
   },
