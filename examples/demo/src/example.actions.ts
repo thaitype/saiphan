@@ -21,17 +21,17 @@ const workflow = initWorkflow({
 
 // This way may use `spn.ts` to add type checking.
 
-workflow.job.prepare = t => ({
+workflow.job.prepare = (t) => ({
   runsOn: 'ubuntu-latest',
   steps: [
     {
       name: 'Checkout',
-      uses: 'actions/checkout@v2' + t.needs('deploy'),
+      uses: 'actions/checkout@v2'
     },
   ],
 });
 
-workflow.job.deploy = t => ({
+workflow.job.deploy = (t) => ({
   // if: `contains(github.event.pull_request.title, '"') == true`,
   if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
   runsOn: 'ubuntu-latest',
@@ -72,19 +72,22 @@ workflow.job.deploy = t => ({
     {
       name: `Save stats ${t.env('state_name')}`, // Compile to 'Save stats ${{ env.name }}'
       if: t.always(), // if: 'always()',
-      run: 'node ./save-stats.js',
+      run: `
+        # Multi-line support (common-tags npm)
+        node ./save-stats.js
+        `,
     },
   ],
 });
 
-workflow.job.build = t => ({
+workflow.job.build = (t) => ({
   if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
   needs: ['prepare'],
   runsOn: 'ubuntu-latest',
   steps: [
     {
       name: 'Checkout',
-      run: `echo 'Hello World!' ${t.var(t.github())}`,
+      run: `echo 'Hello World!' ${t.var(t.github())} ${t.needs('prepare')}`,
     },
   ],
 });

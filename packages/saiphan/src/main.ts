@@ -28,14 +28,14 @@ export interface WorkflowOption<T extends Record<string, string>> {
   env?: T;
 }
 
-export interface WorkflowJob<TNeeds extends keyof any> {
-  [key: string]: WorkflowJobDetail<TNeeds>;
-}
+// export interface WorkflowJob<TNeeds> {
+//   [key: string]: WorkflowJobDetail<TNeeds>;
+// }
 
-export interface WorkflowJobDetail<TNeeds extends keyof any> {
+export interface WorkflowJobDetail<TAvailableNeeds> {
   if?: string;
   runsOn: string;
-  needs?: TNeeds[];
+  needs?: TAvailableNeeds[];
   timeoutMinutes?: number;
   environment?: {
     name?: string;
@@ -75,7 +75,9 @@ function wrapVariable(variable: string) {
   return `\${{ ${variable} }}`;
 }
 
-export function workflowHelper<TEnv, TAvailableNeeds>(option: WorkflowOption<any>) {
+export function workflowHelper<TEnv, TAvailableNeeds, TNeeds>(
+  option: WorkflowOption<any>
+) {
   return {
     // jobs: (jobs: WorkflowJob<any>) => jobs,
     // TODO: Transform to AST later
@@ -86,11 +88,12 @@ export function workflowHelper<TEnv, TAvailableNeeds>(option: WorkflowOption<any
     steps: (id: string) => ({
       outputs: (outputKey: string) => stepOutputs(id, outputKey),
     }),
-    needs: (jobId: TAvailableNeeds) => wrapVariable(`needs.${String(jobId)}`),
+    needs: (jobId: TNeeds) => wrapVariable(`needs.${String(jobId)}`),
     // Github Expression
     equal: (left: AllowType, right: AllowType) => `${left} == ${right}`,
     // TODO: Check arg is string or variable
-    contain: (left: AllowType, right: AllowType) => `contains(${left}, ${right})`,
+    contain: (left: AllowType, right: AllowType) =>
+      `contains(${left}, ${right})`,
     always: () => 'always()',
     and: (...args: string[]) => `(${args.join(' && ')})`,
     or: (...args: string[]) => `(${args.join(' || ')})`,
@@ -99,7 +102,9 @@ export function workflowHelper<TEnv, TAvailableNeeds>(option: WorkflowOption<any
   };
 }
 
-export type JobDetailCallback<TEnv = string, TAvailableNeeds = string> = (workflow: ReturnType<typeof workflowHelper<TEnv, TAvailableNeeds>>) => WorkflowJobDetail<any>;
+export type JobDetailCallback<TEnv = string, TAvailableNeeds = string, TNeeds = string> = (
+  workflow: ReturnType<typeof workflowHelper<TEnv, TAvailableNeeds, TNeeds>>
+) => WorkflowJobDetail<TAvailableNeeds>;
 
 export interface Job extends Record<string, JobDetailCallback> {}
 
@@ -114,7 +119,9 @@ export class Workflow {
     console.log('Jobs Info:');
     for (const [jobId, callback] of Object.entries(this.job)) {
       console.log(`Job: ${jobId}`);
-      console.log(JSON.stringify(callback(workflowHelper(this.option)), null, 2));
+      console.log(
+        JSON.stringify(callback(workflowHelper(this.option)), null, 2)
+      );
       console.log('-----------------------------');
     }
   }

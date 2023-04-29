@@ -32,14 +32,15 @@ const jobs = {
 type TEnv = keyof typeof env;
 type TJob = typeof jobs;
 type TAvailableNeeds<T extends keyof TJob> = TJob[T]['availableNeeds'][number];
-
+type TNeeds<T extends keyof TJob> = TJob[T]['needs'][number];
 /**
  * Add type to Job
  */
 declare module 'saiphan' {
   interface Job {
-    prepare: JobDetailCallback<TEnv, TAvailableNeeds<'prepare'>>;
-    deploy: JobDetailCallback<TEnv, TAvailableNeeds<'deploy'>>;
+    prepare: JobDetailCallback<TEnv, TAvailableNeeds<'prepare'>, TNeeds<'prepare'>>;
+    deploy: JobDetailCallback<TEnv, TAvailableNeeds<'deploy'>, TNeeds<'deploy'>>;
+    build: JobDetailCallback<TEnv, TAvailableNeeds<'build'>, TNeeds<'build'>>;
   }
 }
 
