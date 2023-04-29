@@ -1,9 +1,8 @@
 import { initWorkflow } from 'saiphan';
-import typedWorkflow from '../.spn/example.actions.spn';
-import '../.spn/example.actions.spn';
+import '../.spn/example.actions.type';
 
 // typed-actions helper.
-const workflow = initWorkflow(typedWorkflow, {
+const workflow = initWorkflow({
   name: 'my-workflow',
   on: {
     pullRequest: {

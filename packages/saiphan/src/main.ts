@@ -106,7 +106,7 @@ export interface Job extends Record<string, JobDetailCallback> {}
 
 export class Workflow {
   public job: Job = {};
-  constructor(private typedWorkflow: any, private option: WorkflowOption<any>) {}
+  constructor(private option: WorkflowOption<any>) {}
 
   public log() {
     console.log('GitHub Action Workflow Info:');
@@ -121,6 +121,6 @@ export class Workflow {
   }
 }
 
-export function initWorkflow(typedWorkflow: any, option: WorkflowOption<any>) {
-  return new Workflow(typedWorkflow, option);
+export function initWorkflow(option: WorkflowOption<any>) {
+  return new Workflow(option);
 }

@@ -1,7 +1,7 @@
 // Generated file - do not edit manually!
 // Done by command spnx
 
-import { TypedWorkflowJob, typedWrap, Job, JobDetailCallback } from 'saiphan';
+import { typedWrap, JobDetailCallback } from 'saiphan';
 
 const env = {
   state_name: 'my-state',
