@@ -15,8 +15,8 @@
   "license": "MIT",
   "devDependencies": {
     "ava": "^5.2.0",
-    "tsx": "^3.12.3",
-    "esbuild-register": "^3.4.2"
+    "esbuild-register": "^3.4.2",
+    "tsx": "^3.12.3"
   },
   "ava": {
     "extensions": [
@@ -25,5 +25,9 @@
     "require": [
       "esbuild-register"
     ]
+  },
+  "dependencies": {
+    "@types/common-tags": "^1.8.1",
+    "common-tags": "^1.8.2"
   }
 }

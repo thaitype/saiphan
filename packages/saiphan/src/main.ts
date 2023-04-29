@@ -2,6 +2,7 @@
 // https://dagger.io/blog/nodejs-sdk
 
 import { TypedWorkflowJob } from './spnx.types';
+import { stripIndent } from 'common-tags';
 
 // import { TypedWorkflow } from "./spnx.types";
 export * from './spnx.types';
@@ -56,16 +57,25 @@ export interface WorkflowStepBase {
   if?: string;
   id?: string;
   env?: Record<string, string>;
+  'continue-on-error'?: boolean;
 }
 
 export interface WorkflowStepRun extends WorkflowStepBase {
   run: string;
+  'working-directory'?: string;
 }
 
 export interface WorkflowStepUses extends WorkflowStepBase {
   uses: string;
   with?: Record<string, string | undefined>;
 }
+
+/**
+ * The value of a specific output.
+ * @param stepId
+ * @param key
+ * @returns
+ */
 
 function stepOutputs(stepId: string, key: string) {
   return `\${{ steps.${stepId}.outputs.${key} }}`;
@@ -84,9 +94,36 @@ export function workflowHelper<TEnv, TAvailableNeeds, TNeeds>(
     env: (key: TEnv) => wrapVariable(`env.${String(key)}`),
     secrets: (key: string) => wrapVariable(`secrets.${String(key)}`),
     github: (key?: string) => (key ? `github.${String(key)}` : 'github'),
-    // Reference inside job
-    steps: (id: string) => ({
-      outputs: (outputKey: string) => stepOutputs(id, outputKey),
+    /**
+     * This context changes for each step in a job.
+     * You can access this context from any step in a job.
+     * This object contains all the properties listed below.
+     *
+     * @note Reference inside job
+     * @ref https://docs.github.com/en/actions/learn-github-actions/contexts#steps-context
+     * @param stepId
+     * @returns
+     */
+    steps: (stepId: string) => ({
+      /**
+       * The set of outputs defined for the step.
+       * For more information, see ["Metadata syntax for GitHub Actions."](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#outputs-for-docker-container-and-javascript-actions)
+       * @param outputKey
+       * @returns
+       */
+      outputs: (outputKey: string) => stepOutputs(stepId, outputKey),
+      /**
+       * The result of a completed step after [continue-on-error](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepscontinue-on-error) is applied.
+       * Possible values are `success`, `failure`, `cancelled`, or `skipped`.
+       * When a `continue-on-error` step fails, the outcome is `failure`, but the final `conclusion` is `success`.
+       */
+      conclusion: wrapVariable(`steps.${stepId}.conclusion`),
+      /**
+       * The result of a completed step before [continue-on-error](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepscontinue-on-error) is applied.
+       * Possible values are `success`, `failure`, `cancelled`, or `skipped`.
+       * When a `continue-on-error` step fails, the outcome is `failure`, but the final `conclusion` is `success`.
+       */
+      outcome: wrapVariable(`steps.${stepId}.outcome`),
     }),
     needs: (jobId: TNeeds) => wrapVariable(`needs.${String(jobId)}`),
     // Github Expression
@@ -99,6 +136,7 @@ export function workflowHelper<TEnv, TAvailableNeeds, TNeeds>(
     or: (...args: string[]) => `(${args.join(' || ')})`,
     // helper
     var: wrapVariable,
+    multiline: (text: string) => stripIndent`|\n${text}`,
   };
 }
 

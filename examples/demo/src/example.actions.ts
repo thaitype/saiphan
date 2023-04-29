@@ -26,7 +26,7 @@ workflow.job.prepare = (t) => ({
   steps: [
     {
       name: 'Checkout',
-      uses: 'actions/checkout@v2'
+      uses: 'actions/checkout@v2',
     },
   ],
 });
@@ -71,11 +71,11 @@ workflow.job.deploy = (t) => ({
     },
     {
       name: `Save stats ${t.env('state_name')}`, // Compile to 'Save stats ${{ env.name }}'
-      if: t.always(), // if: 'always()',
-      run: `
+      if: t.always(),
+      run: t.multiline(/* bash */ `
         # Multi-line support (common-tags npm)
         node ./save-stats.js
-        `,
+        `),
     },
   ],
 });
