@@ -18,3 +18,4 @@ export function typedWrap<
 >(jobDetial: TypedWorkflowJob<TAvailableNeeds, TNeeds>) {
   return jobDetial;
 }
+

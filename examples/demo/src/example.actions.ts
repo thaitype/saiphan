@@ -20,12 +20,7 @@ const workflow = initWorkflow(typedWorkflow, {
   },
 });
 
-workflow.job.aaa = t => ({
-  runsOn: 'ubuntu-latest',
-  steps: [{
-    run: 'echo "Hello World!"' + t.needs('bbb'),
-  }],
-});
+// This way may use `spn.ts` to add type checking.
 
 workflow.job.prepare = t => ({
   runsOn: 'ubuntu-latest',
@@ -36,20 +31,8 @@ workflow.job.prepare = t => ({
     },
   ],
 });
-// This way may use `spn.ts` to add type checking.
 
-workflow.addJob('prepare', typedWorkflow.jobs.prepare, (t) => ({
-  runsOn: 'ubuntu-latest',
-  steps: [
-    {
-      name: 'Checkout',
-      uses: 'actions/checkout@v2' + t.needs('deploy'),
-    },
-  ],
-}));
-
-
-workflow.addJob('deploy', typedWorkflow.jobs.deploy, (t) => ({
+workflow.job.deploy = t => ({
   // if: `contains(github.event.pull_request.title, '"') == true`,
   if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
   runsOn: 'ubuntu-latest',
@@ -93,9 +76,9 @@ workflow.addJob('deploy', typedWorkflow.jobs.deploy, (t) => ({
       run: 'node ./save-stats.js',
     },
   ],
-}));
+});
 
-workflow.addJob('build', typedWorkflow.jobs.build, (t) => ({
+workflow.job.build = t => ({
   if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
   needs: ['prepare'],
   runsOn: 'ubuntu-latest',
@@ -105,7 +88,7 @@ workflow.addJob('build', typedWorkflow.jobs.build, (t) => ({
       run: `echo 'Hello World!' ${t.var(t.github())}`,
     },
   ],
-}));
+});
 
 console.log(JSON.stringify(workflow, null, 2));
 
