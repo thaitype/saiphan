@@ -3,8 +3,7 @@
 
 import { TypedWorkflowJob } from './spnx.types';
 import { stripIndent } from 'common-tags';
-import {AllowType, WorkflowJobDetail, WorkflowOption, } from './types';
-
+import { AllowType, WorkflowJobDetail, WorkflowOption } from './types';
 
 /**
  * The value of a specific output.
@@ -30,9 +29,11 @@ function wrapVariable(variable: string) {
   return `\${{ ${variable} }}`;
 }
 
-export function workflowHelper<TEnv, TAvailableNeeds, TNeeds extends string>(
-  option: WorkflowOption<any>
-) {
+export function workflowHelper<
+  TEnv,
+  TNeeds extends string,
+  TOutputs extends string
+>(option: WorkflowOption<any>) {
   return {
     // jobs: (jobs: WorkflowJob<any>) => jobs,
     // TODO: Transform to AST later
@@ -83,7 +84,7 @@ export function workflowHelper<TEnv, TAvailableNeeds, TNeeds extends string>(
        * @param outputKey
        * @returns
        */
-      outputs: (outputKey: string) => needsOutputs(jobId, outputKey),
+      outputs: (outputKey: TOutputs) => needsOutputs(jobId, outputKey),
       /**
        * The result of a job that the current job depends on.
        * Possible values are `success`, `failure`, `cancelled`, or `skipped`.
@@ -104,8 +105,15 @@ export function workflowHelper<TEnv, TAvailableNeeds, TNeeds extends string>(
   };
 }
 
-export type JobDetailCallback<TEnv = string, TAvailableNeeds = string, TNeeds extends string = string> = (
-  workflow: ReturnType<typeof workflowHelper<TEnv, TAvailableNeeds, TNeeds>>
+export type JobDetailCallback<
+  TEnv = string,
+  TAvailableNeeds = string,
+  TNeeds extends string = string,
+  TOutputs extends string = string
+> = (
+  workflow: ReturnType<
+    typeof workflowHelper<TEnv, TNeeds, TOutputs>
+  >
 ) => WorkflowJobDetail<TAvailableNeeds>;
 
 export interface Job extends Record<string, JobDetailCallback> {}

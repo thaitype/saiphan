@@ -52,7 +52,7 @@ workflow.job.deploy = (t) => ({
   needs: ['build'],
   steps: [
     {
-      run: `echo 'Hello World!' ${t.needs('build').outputs('xxx')}`,
+      run: `echo 'Hello World!' ${t.needs('build').outputs('userId')}`,
     },
     {
       name: 'Download artifact from build job',

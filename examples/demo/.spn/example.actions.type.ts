@@ -15,14 +15,17 @@ const jobs = {
   prepare: typedWrap({
     availableNeeds: ['build', 'deploy'],
     needs: [],
+    outputs: [],
   }),
   deploy: typedWrap({
     availableNeeds: ['prepare', 'build'],
     needs: ['build'],
+    outputs: ['userId'], // used by needs
   }),
   build: typedWrap({
     availableNeeds: ['prepare', 'deploy'],
     needs: ['prepare'],
+    outputs: [],
   }),
 };
 
@@ -33,14 +36,15 @@ type TEnv = keyof typeof env;
 type TJob = typeof jobs;
 type TAvailableNeeds<T extends keyof TJob> = TJob[T]['availableNeeds'][number];
 type TNeeds<T extends keyof TJob> = TJob[T]['needs'][number];
+type TOutputs<T extends keyof TJob> = TJob[T]['outputs'][number];
 /**
  * Add type to Job
  */
 declare module 'saiphan' {
   interface Job {
-    prepare: JobDetailCallback<TEnv, TAvailableNeeds<'prepare'>, TNeeds<'prepare'>>;
-    deploy: JobDetailCallback<TEnv, TAvailableNeeds<'deploy'>, TNeeds<'deploy'>>;
-    build: JobDetailCallback<TEnv, TAvailableNeeds<'build'>, TNeeds<'build'>>;
+    prepare: JobDetailCallback<TEnv, TAvailableNeeds<'prepare'>, TNeeds<'prepare'>, TOutputs<'prepare'>>;
+    deploy: JobDetailCallback<TEnv, TAvailableNeeds<'deploy'>, TNeeds<'deploy'>, TOutputs<'deploy'>>;
+    build: JobDetailCallback<TEnv, TAvailableNeeds<'build'>, TNeeds<'build'>, TOutputs<'build'>>;
   }
 }
 
