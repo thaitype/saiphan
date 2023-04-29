@@ -75,11 +75,11 @@ function wrapVariable(variable: string) {
   return `\${{ ${variable} }}`;
 }
 
-export function workflowHelper<TAvailableNeeds>(option: WorkflowOption<any>) {
+export function workflowHelper<TEnv, TAvailableNeeds>(option: WorkflowOption<any>) {
   return {
     // jobs: (jobs: WorkflowJob<any>) => jobs,
     // TODO: Transform to AST later
-    env: (key: string) => wrapVariable(`env.${String(key)}`),
+    env: (key: TEnv) => wrapVariable(`env.${String(key)}`),
     secrets: (key: string) => wrapVariable(`secrets.${String(key)}`),
     github: (key?: string) => (key ? `github.${String(key)}` : 'github'),
     // Reference inside job
@@ -99,23 +99,28 @@ export function workflowHelper<TAvailableNeeds>(option: WorkflowOption<any>) {
   };
 }
 
-export type JobDetailCallback<TAvailableNeeds = string> =  (workflow: ReturnType<typeof workflowHelper<TAvailableNeeds>>) => WorkflowJobDetail<any>;
+export type JobDetailCallback<TEnv = string, TAvailableNeeds = string> =
+  (workflow: ReturnType<typeof workflowHelper<TEnv, TAvailableNeeds>>) => WorkflowJobDetail<any>;
+
 export interface Job extends Record<string, JobDetailCallback> {}
 
-export class Workflow<TTypedWorkflow> {
-  public job: Job;
-  constructor(private typedWorkflow: any, private option: any) {}
+export class Workflow {
+  public job: Job = {};
+  constructor(private typedWorkflow: any, private option: WorkflowOption<any>) {}
 
-  // addJob<TJobId extends keyof any, TAvailableNeeds extends string, TNeeds extends string>(
-  //   jobId: TJobId,
-  //   typedWorkflow: TypedWorkflowJob<TAvailableNeeds, TNeeds>,
-  //   myCallback: JobDetailCallback<TAvailableNeeds>,
-  // ) {
-  //   this.jobs2[jobId] = myCallback(workflowHelper<TAvailableNeeds>(this.option));
-  //   return this;
-  // }
+  public log() {
+    console.log('GitHub Action Workflow Info:');
+    console.log(JSON.stringify(this.option, null, 2));
+    console.log('=============================');
+    console.log('Jobs Info:');
+    for(const [jobId, callback] of Object.entries(this.job)) {
+      console.log(`Job: ${jobId}`);
+      console.log(JSON.stringify(callback(workflowHelper(this.option)), null, 2));
+      console.log('-----------------------------');
+    }
+  }
 }
 
-export function initWorkflow<T>(typedWorkflow: T, option: any) {
-  return new Workflow<T>(typedWorkflow, option);
+export function initWorkflow(typedWorkflow: any, option: WorkflowOption<any>) {
+  return new Workflow(typedWorkflow, option);
 }

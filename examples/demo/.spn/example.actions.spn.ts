@@ -3,6 +3,14 @@
 
 import { TypedWorkflowJob, typedWrap, Job, JobDetailCallback } from 'saiphan';
 
+const env = {
+  state_name: 'my-state',
+  artifact_web_name: 'web_api',
+  app_name: 'web-api',
+  slot_name: 'preview',
+  resource_group: 'my-resource-group',
+};
+
 const jobs = {
   prepare: typedWrap({
     availableNeeds: ['build', 'deploy'],
@@ -18,13 +26,24 @@ const jobs = {
   }),
 };
 
+/**
+ * Define type
+ */
+type TEnv = keyof typeof env;
+type TJob = typeof jobs;
+type TAvailableNeeds<T extends keyof TJob> = TJob[T]['availableNeeds'][number];
+
+/**
+ * Add type to Job
+ */
 declare module 'saiphan' {
   interface Job {
-    prepare: JobDetailCallback<(typeof jobs)['prepare']['availableNeeds'][number]>;
-    deploy: JobDetailCallback<(typeof jobs)['deploy']['availableNeeds'][number]>;
+    prepare: JobDetailCallback<TEnv, TAvailableNeeds<'prepare'>>;
+    deploy: JobDetailCallback<TEnv, TAvailableNeeds<'deploy'>>;
   }
 }
 
 export default {
+  env,
   jobs,
 };

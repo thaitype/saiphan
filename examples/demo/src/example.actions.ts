@@ -90,6 +90,6 @@ workflow.job.build = t => ({
   ],
 });
 
-console.log(JSON.stringify(workflow, null, 2));
+workflow.log();
 
 export default workflow;
