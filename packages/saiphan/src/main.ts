@@ -1,7 +1,10 @@
 // https://github.com/cicadahq/cicada
 // https://dagger.io/blog/nodejs-sdk
 
-import { TypedWorkflow } from "./spnx.types";
+import { TypedWorkflowJob } from './spnx.types';
+
+// import { TypedWorkflow } from "./spnx.types";
+export * from './spnx.types';
 
 export type AllowType = string | boolean;
 
@@ -64,7 +67,7 @@ export interface WorkflowStepUses extends WorkflowStepBase {
   with?: Record<string, string>;
 }
 
-function stepOutputs(stepId: string, key: string){
+function stepOutputs(stepId: string, key: string) {
   return `\${{ steps.${stepId}.outputs.${key} }}`;
 }
 
@@ -72,21 +75,18 @@ function wrapVariable(variable: string) {
   return `\${{ ${variable} }}`;
 }
 
-export function workflowHelper<
-  TEnv extends Record<string, string>,
-  TJobId extends string
->(typedWorkflow: TypedWorkflow<TJobId>, option: WorkflowOption<TEnv>) {
+export function workflowHelper<TAvailableNeeds>(option: WorkflowOption<any>) {
   return {
-    jobs: (jobs: WorkflowJob<TJobId>) => jobs,
+    // jobs: (jobs: WorkflowJob<any>) => jobs,
     // TODO: Transform to AST later
-    env: (key: keyof TEnv) => wrapVariable(`env.${String(key)}`),
+    env: (key: string) => wrapVariable(`env.${String(key)}`),
     secrets: (key: string) => wrapVariable(`secrets.${String(key)}`),
-    github: (key?: string) => key ? `github.${String(key)}` : 'github',
+    github: (key?: string) => (key ? `github.${String(key)}` : 'github'),
     // Reference inside job
     steps: (id: string) => ({
-      outputs: (outputKey: string) => stepOutputs(id, outputKey)
+      outputs: (outputKey: string) => stepOutputs(id, outputKey),
     }),
-    needs: (jobId: TJobId) => wrapVariable(`needs.${String(jobId)}`),
+    needs: (jobId: TAvailableNeeds) => wrapVariable(`needs.${String(jobId)}`),
     // Github Expression
     equal: (left: AllowType, right: AllowType) => `${left} == ${right}`,
     // TODO: Check arg is string or variable
@@ -96,23 +96,23 @@ export function workflowHelper<
     or: (...args: string[]) => `(${args.join(' || ')})`,
     // helper
     var: wrapVariable,
-  }
+  };
 }
 
-type Callback = (workflow: ReturnType<typeof workflowHelper>) => WorkflowJobDetail<any>;
-
-export class Workflow {
+export class Workflow<TTypedWorkflow> {
   private jobs: any = {};
   constructor(private typedWorkflow: any, private option: any) {}
 
-  addJob<TJobId extends keyof any>(jobId: TJobId, job: Callback ){
-
-    this.jobs[jobId] = job(workflowHelper(this.typedWorkflow, this.option));
+  addJob<TJobId extends keyof any, TAvailableNeeds extends string, TNeeds extends string>(
+    jobId: TJobId,
+    typedWorkflow: TypedWorkflowJob<TAvailableNeeds, TNeeds>,
+    myCallback: (workflow: ReturnType<typeof workflowHelper<TAvailableNeeds>>) => WorkflowJobDetail<any>
+  ) {
+    this.jobs[jobId] = myCallback(workflowHelper<TAvailableNeeds>(this.option));
     return this;
   }
-
 }
 
-export function initWorkflow(typedWorkflow: any, option: any){
-  return new Workflow(typedWorkflow, option);
+export function initWorkflow<T>(typedWorkflow: T, option: any) {
+  return new Workflow<T>(typedWorkflow, option);
 }

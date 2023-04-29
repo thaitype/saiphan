@@ -21,17 +21,17 @@ const workflow = initWorkflow(typedWorkflow, {
 
 // This way may use `spn.ts` to add type checking.
 
-workflow.addJob('prepare', (t: any) => ({
+workflow.addJob('prepare', typedWorkflow.jobs.prepare, (t) => ({
   runsOn: 'ubuntu-latest',
   steps: [
     {
       name: 'Checkout',
-      uses: 'actions/checkout@v2',
+      uses: 'actions/checkout@v2' + t.needs('deploy'),
     },
   ],
 }));
 
-workflow.addJob('deploy', (t) => ({
+workflow.addJob('deploy', typedWorkflow.jobs.deploy, (t) => ({
   // if: `contains(github.event.pull_request.title, '"') == true`,
   if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
   runsOn: 'ubuntu-latest',
@@ -77,7 +77,7 @@ workflow.addJob('deploy', (t) => ({
   ],
 }));
 
-workflow.addJob('build', (t: any) => ({
+workflow.addJob('build', typedWorkflow.jobs.build, (t) => ({
   if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
   needs: ['prepare'],
   runsOn: 'ubuntu-latest',
