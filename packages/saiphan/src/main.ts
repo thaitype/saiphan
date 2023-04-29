@@ -64,7 +64,7 @@ export interface WorkflowStepRun extends WorkflowStepBase {
 
 export interface WorkflowStepUses extends WorkflowStepBase {
   uses: string;
-  with?: Record<string, string>;
+  with?: Record<string, string | undefined>;
 }
 
 function stepOutputs(stepId: string, key: string) {
@@ -99,8 +99,7 @@ export function workflowHelper<TEnv, TAvailableNeeds>(option: WorkflowOption<any
   };
 }
 
-export type JobDetailCallback<TEnv = string, TAvailableNeeds = string> =
-  (workflow: ReturnType<typeof workflowHelper<TEnv, TAvailableNeeds>>) => WorkflowJobDetail<any>;
+export type JobDetailCallback<TEnv = string, TAvailableNeeds = string> = (workflow: ReturnType<typeof workflowHelper<TEnv, TAvailableNeeds>>) => WorkflowJobDetail<any>;
 
 export interface Job extends Record<string, JobDetailCallback> {}
 
@@ -113,7 +112,7 @@ export class Workflow {
     console.log(JSON.stringify(this.option, null, 2));
     console.log('=============================');
     console.log('Jobs Info:');
-    for(const [jobId, callback] of Object.entries(this.job)) {
+    for (const [jobId, callback] of Object.entries(this.job)) {
       console.log(`Job: ${jobId}`);
       console.log(JSON.stringify(callback(workflowHelper(this.option)), null, 2));
       console.log('-----------------------------');
