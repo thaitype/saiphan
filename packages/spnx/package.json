@@ -2,7 +2,7 @@
   "name": "spnx",
   "version": "0.0.0",
   "description": "Saiphan Github Actions executable package",
-  "main": "index.ts",
+  "main": "main.js",
   "scripts": {
     "start": "tsx src/example.actions.ts",
     "test": "ava",
