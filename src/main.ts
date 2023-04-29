@@ -1,6 +1,8 @@
 // https://github.com/cicadahq/cicada
 // https://dagger.io/blog/nodejs-sdk
 
+export type AllowType = string | boolean;
+
 export type PullRequestEvent = {
   pullRequest: {
     types: string[];
@@ -59,16 +61,23 @@ export interface WorkflowStepUses extends WorkflowStepBase {
   with?: Record<string, string>;
 }
 
-export function initWorkflow<T extends Record<string, string>>(option: WorkflowOption<T>) {
-  return option;
+function stepOutputs(stepId: string, key: string){
+  return `\${{ steps.${stepId}.outputs.${key} }}`;
 }
 
-export const jobs = (jobs: WorkflowJob) => jobs;
-
-export function defineWorkflow(w: ReturnType<typeof initWorkflow>) {
+export function initWorkflow<TEnv extends Record<string, string>>(typedWorkflow: any, option: WorkflowOption<TEnv>) {
   return {
-    // env: w.jobs(),
+    jobs: (jobs: WorkflowJob) => jobs,
+    // TODO: Transform to AST later
+    env: (key: keyof TEnv) => `\${{ env.${String(key)} }}`,
+    secrets: (key: string) => `\${{ secrets.${String(key)} }}`,
+    github: (key: string) => `\${{ github.${String(key)} }}`,
+    steps: (id: string) => ({
+      outputs: (outputKey: string) => stepOutputs(id, outputKey)
+    }),
+    // Github Expression
+    equal: (left: AllowType, right: AllowType) => `${left} == ${right}`,
+    contain: (left: AllowType, right: AllowType) => `contains(${left}, ${right})`,
+    always: () => 'always()',
   };
 }
-
-export class Job {}

@@ -1,8 +1,8 @@
-import { initWorkflow, jobs } from './main';
+import { initWorkflow } from './main';
+import typedWorkflow from './typed-actions/example.actions';
 
-const t: any = undefined; // typed-actions helper.
-
-const w = initWorkflow({
+// typed-actions helper.
+const t = initWorkflow(typedWorkflow, {
   name: 'my-workflow',
   on: {
     pullRequest: {
@@ -11,15 +11,16 @@ const w = initWorkflow({
     },
   },
   env: {
+    state_name: 'my-state',
     artifact_web_name: 'web_api',
-    name: 'web-api',
+    app_name: 'web-api',
     slot_name: 'preview',
     resource_group: 'my-resource-group',
   },
 });
 
-const workflows = jobs({
-  error: {
+const workflows = t.jobs({
+  deploy: {
     // if: `contains(github.event.pull_request.title, '"') == true`,
     if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
     runsOn: 'ubuntu-latest',
@@ -40,9 +41,9 @@ const workflows = jobs({
         uses: 'mildronize/actions-az-cli/webapp/deployment/list-publishing-profiles@v1',
         with: {
           azure_credentials: t.secrets('AZURE_CREDENTIAL'), // Compile to '${{ secrets.AZURE_CREDENTIAL }}'
-          name: t.env('name'), // Compile to '${{ env.name }}'
+          name: t.env('app_name'), // Compile to '${{ env.name }}'
           slot: t.env('slot_name'), // Compile to '${{ env.slot_name }}'
-          resource_group: '${{ env.resource_group }}', // Compile to '${{ env.resource_group }}'
+          resource_group: t.env('resource_group'), // Compile to '${{ env.resource_group }}'
         },
       },
       {
@@ -57,7 +58,7 @@ const workflows = jobs({
         },
       },
       {
-        name: `Save stats ${t.env('name')}`, // Compile to 'Save stats ${{ env.name }}'
+        name: `Save stats ${t.env('state_name')}`, // Compile to 'Save stats ${{ env.name }}'
         if: t.always(), // if: 'always()',
         run: 'node ./save-stats.js',
       },
