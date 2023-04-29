@@ -19,14 +19,28 @@ const workflow = initWorkflow({
   },
 });
 
-// This way may use `spn.ts` to add type checking.
-
 workflow.job.prepare = (t) => ({
   runsOn: 'ubuntu-latest',
   steps: [
     {
       name: 'Checkout',
       uses: 'actions/checkout@v2',
+    },
+  ],
+});
+
+// This way may use `spn.ts` to add type checking.
+workflow.job.build = (t) => ({
+  if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
+  needs: ['prepare'],
+  outputs: {
+    userId: '1234',
+  },
+  runsOn: 'ubuntu-latest',
+  steps: [
+    {
+      name: 'Checkout',
+      run: `echo 'Hello World!' ${t.var(t.github())} ${t.needs('prepare')}`,
     },
   ],
 });
@@ -38,7 +52,7 @@ workflow.job.deploy = (t) => ({
   needs: ['build'],
   steps: [
     {
-      run: `echo 'Hello World!' ${t.needs('build')}`,
+      run: `echo 'Hello World!' ${t.needs('build').outputs('xxx')}`,
     },
     {
       name: 'Download artifact from build job',
@@ -80,17 +94,7 @@ workflow.job.deploy = (t) => ({
   ],
 });
 
-workflow.job.build = (t) => ({
-  if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
-  needs: ['prepare'],
-  runsOn: 'ubuntu-latest',
-  steps: [
-    {
-      name: 'Checkout',
-      run: `echo 'Hello World!' ${t.var(t.github())} ${t.needs('prepare')}`,
-    },
-  ],
-});
+
 
 workflow.log();
 
