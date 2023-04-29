@@ -6,6 +6,7 @@
 //   jobs: Record<TJobId, TypedWorkflowJob<X, Y>>;
 // };
 
+
 export type TypedWorkflowJob<TAvailableNeeds extends string, TNeeds extends string> = {
   availableNeeds: TAvailableNeeds[];
   needs: TNeeds[];

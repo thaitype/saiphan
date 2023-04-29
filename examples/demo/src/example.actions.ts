@@ -1,5 +1,6 @@
 import { initWorkflow } from 'saiphan';
 import typedWorkflow from '../.spn/example.actions.spn';
+import '../.spn/example.actions.spn';
 
 // typed-actions helper.
 const workflow = initWorkflow(typedWorkflow, {
@@ -19,6 +20,22 @@ const workflow = initWorkflow(typedWorkflow, {
   },
 });
 
+workflow.job.aaa = t => ({
+  runsOn: 'ubuntu-latest',
+  steps: [{
+    run: 'echo "Hello World!"' + t.needs('bbb'),
+  }],
+});
+
+workflow.job.prepare = t => ({
+  runsOn: 'ubuntu-latest',
+  steps: [
+    {
+      name: 'Checkout',
+      uses: 'actions/checkout@v2' + t.needs('deploy'),
+    },
+  ],
+});
 // This way may use `spn.ts` to add type checking.
 
 workflow.addJob('prepare', typedWorkflow.jobs.prepare, (t) => ({
@@ -30,6 +47,7 @@ workflow.addJob('prepare', typedWorkflow.jobs.prepare, (t) => ({
     },
   ],
 }));
+
 
 workflow.addJob('deploy', typedWorkflow.jobs.deploy, (t) => ({
   // if: `contains(github.event.pull_request.title, '"') == true`,

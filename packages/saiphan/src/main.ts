@@ -99,16 +99,24 @@ export function workflowHelper<TAvailableNeeds>(option: WorkflowOption<any>) {
   };
 }
 
+export type JobDetailCallback<TAvailableNeeds = any> =  (workflow: ReturnType<typeof workflowHelper<TAvailableNeeds>>) => WorkflowJobDetail<any>;
+type A = () => void;
+
+export interface Job extends Record<string, JobDetailCallback> {
+  // aaa: (workflow: ReturnType<typeof workflowHelper<any>>) => WorkflowJobDetail<any>;
+}
+
 export class Workflow<TTypedWorkflow> {
-  private jobs: any = {};
+  public job: Job;
+  private jobs2: any = {};
   constructor(private typedWorkflow: any, private option: any) {}
 
   addJob<TJobId extends keyof any, TAvailableNeeds extends string, TNeeds extends string>(
     jobId: TJobId,
     typedWorkflow: TypedWorkflowJob<TAvailableNeeds, TNeeds>,
-    myCallback: (workflow: ReturnType<typeof workflowHelper<TAvailableNeeds>>) => WorkflowJobDetail<any>
+    myCallback: JobDetailCallback<TAvailableNeeds>,
   ) {
-    this.jobs[jobId] = myCallback(workflowHelper<TAvailableNeeds>(this.option));
+    this.jobs2[jobId] = myCallback(workflowHelper<TAvailableNeeds>(this.option));
     return this;
   }
 }
