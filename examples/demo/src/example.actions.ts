@@ -1,5 +1,5 @@
-import { initWorkflow } from './main';
-import typedWorkflow from './typed-actions/example.actions';
+import { initWorkflow } from 'saiphan';
+import typedWorkflow from '../.spn/example.actions.spn';
 
 // typed-actions helper.
 const t = initWorkflow(typedWorkflow, {

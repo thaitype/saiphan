@@ -1,10 +1,11 @@
 {
   "name": "saiphan",
-  "version": "1.0.0.alpha.0",
+  "version": "0.0.0",
   "description": "",
-  "main": "index.ts",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
   "scripts": {
-    "start": "tsx src/example.actions.ts",
+    "build": "tsup src/main.ts --dts",
     "test": "ava",
     "test:watch": "ava --watch"
   },
@@ -13,11 +14,8 @@
   "license": "MIT",
   "devDependencies": {
     "ava": "^5.2.0",
-    "esbuild-register": "^3.4.2",
-    "nx": "^16.0.1",
-    "tsup": "^6.7.0",
     "tsx": "^3.12.3",
-    "typescript": "^5.0.4"
+    "esbuild-register": "^3.4.2"
   },
   "ava": {
     "extensions": [

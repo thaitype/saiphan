@@ -1,7 +1,7 @@
 {
-  "name": "saiphan",
+  "name": "demo",
   "version": "1.0.0.alpha.0",
-  "description": "",
+  "description": "Saiphan demo example",
   "main": "index.ts",
   "scripts": {
     "start": "tsx src/example.actions.ts",
@@ -11,13 +11,8 @@
   "keywords": [],
   "author": "Thada Wangthammang",
   "license": "MIT",
-  "devDependencies": {
-    "ava": "^5.2.0",
-    "esbuild-register": "^3.4.2",
-    "nx": "^16.0.1",
-    "tsup": "^6.7.0",
-    "tsx": "^3.12.3",
-    "typescript": "^5.0.4"
+  "dependencies": {
+    "saiphan": "workspace:*"
   },
   "ava": {
     "extensions": [
