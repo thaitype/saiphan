@@ -65,19 +65,27 @@ function stepOutputs(stepId: string, key: string){
   return `\${{ steps.${stepId}.outputs.${key} }}`;
 }
 
+function wrapVariable(variable: string) {
+  return `\${{ ${variable} }}`;
+}
+
 export function initWorkflow<TEnv extends Record<string, string>>(typedWorkflow: any, option: WorkflowOption<TEnv>) {
   return {
     jobs: (jobs: WorkflowJob) => jobs,
     // TODO: Transform to AST later
-    env: (key: keyof TEnv) => `\${{ env.${String(key)} }}`,
-    secrets: (key: string) => `\${{ secrets.${String(key)} }}`,
-    github: (key: string) => `\${{ github.${String(key)} }}`,
+    env: (key: keyof TEnv) => wrapVariable(`env.${String(key)}`),
+    secrets: (key: string) => wrapVariable(`secrets.${String(key)}`),
+    github: (key?: string) => key ? `github.${String(key)}` : 'github',
+    // Reference inside job
     steps: (id: string) => ({
       outputs: (outputKey: string) => stepOutputs(id, outputKey)
     }),
     // Github Expression
     equal: (left: AllowType, right: AllowType) => `${left} == ${right}`,
+    // TODO: Check arg is string or variable
     contain: (left: AllowType, right: AllowType) => `contains(${left}, ${right})`,
     always: () => 'always()',
+    // helper
+    var: wrapVariable,
   };
 }

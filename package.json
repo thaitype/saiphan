@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "tsx src/example.actions.ts",
     "test": "ava",
     "test:watch": "ava --watch"
   },

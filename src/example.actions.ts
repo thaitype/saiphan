@@ -70,10 +70,12 @@ const workflows = t.jobs({
     steps: [
       {
         name: 'Checkout',
-        run: "echo 'Hello World!'",
+        run: `echo 'Hello World!' ${t.var(t.github())}`,
       },
     ],
   },
 });
+
+console.log(JSON.stringify(workflows, null, 2));
 
 export default workflows;
