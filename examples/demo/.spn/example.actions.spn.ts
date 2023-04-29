@@ -4,7 +4,8 @@
 export default {
   jobs: {
     prepare: {
-      availableNeeds: ['build', 'deploy']
+      availableNeeds: ['build', 'deploy'],
+      needs: [],
     },
     deploy: {
       availableNeeds: ['prepare', 'build'],

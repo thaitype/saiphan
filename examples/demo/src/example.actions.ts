@@ -2,7 +2,7 @@ import { initWorkflow } from 'saiphan';
 import typedWorkflow from '../.spn/example.actions.spn';
 
 // typed-actions helper.
-const t = initWorkflow(typedWorkflow, {
+const workflow = initWorkflow(typedWorkflow, {
   name: 'my-workflow',
   on: {
     pullRequest: {
@@ -19,74 +19,76 @@ const t = initWorkflow(typedWorkflow, {
   },
 });
 
-const workflows = t.jobs({
-  prepare: {
-    runsOn: 'ubuntu-latest',
-    steps: [
-      {
-        name: 'Checkout',
-        uses: 'actions/checkout@v2',
-      }
-    ]
-  },
-  deploy: {
-    // if: `contains(github.event.pull_request.title, '"') == true`,
-    if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
-    runsOn: 'ubuntu-latest',
-    needs: ['build'],
-    steps: [
-      {
-        run: `echo 'Hello World!' ${t.needs('build')}`,
-      },
-      {
-        name: 'Download artifact from build job',
-        uses: 'actions/download-artifact@v2',
-        with: {
-          name: t.env('artifact_web_name'), // Compile to '${{ env.artifact_web_name }}'
-        },
-      },
-      {
-        name: 'Get Publish Profile',
-        id: 'get-publish-profile',
-        uses: 'mildronize/actions-az-cli/webapp/deployment/list-publishing-profiles@v1',
-        with: {
-          azure_credentials: t.secrets('AZURE_CREDENTIAL'), // Compile to '${{ secrets.AZURE_CREDENTIAL }}'
-          name: t.env('app_name'), // Compile to '${{ env.name }}'
-          slot: t.env('slot_name'), // Compile to '${{ env.slot_name }}'
-          resource_group: t.env('resource_group'), // Compile to '${{ env.resource_group }}'
-        },
-      },
-      {
-        name: 'Deploy to Azure Web App',
-        id: 'deploy-to-webapp',
-        uses: 'azure/webapps-deploy@v2',
-        with: {
-          'app-name': t.env('app_name'), // compile to '${{ env.app_name }}'
-          'publish-profile': t.steps('get-publish-profile').outputs('publish_profile'), // Compile to '${{ steps.get-publish-profile.outputs.publish_profile }}'
-          'package': '.',
-          'slot-name': t.env('slot_name'), // compile to '${{ env.slot_name }}'
-        },
-      },
-      {
-        name: `Save stats ${t.env('state_name')}`, // Compile to 'Save stats ${{ env.name }}'
-        if: t.always(), // if: 'always()',
-        run: 'node ./save-stats.js',
-      },
-    ],
-  },
-  build: {
-    if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
-    needs: ['prepare'],
-    runsOn: 'ubuntu-latest',
-    steps: [
-      {
-        name: 'Checkout',
-        run: `echo 'Hello World!' ${t.var(t.github())}`,
-      },
-    ],
-  },
-});
+// This way may use `spn.ts` to add type checking.
 
-console.log(JSON.stringify(workflows, null, 2));
+workflow.addJob('prepare', (t: any) => ({
+  runsOn: 'ubuntu-latest',
+  steps: [
+    {
+      name: 'Checkout',
+      uses: 'actions/checkout@v2',
+    },
+  ],
+}));
 
-export default workflows;
+workflow.addJob('deploy', (t) => ({
+  // if: `contains(github.event.pull_request.title, '"') == true`,
+  if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
+  runsOn: 'ubuntu-latest',
+  needs: ['build'],
+  steps: [
+    {
+      run: `echo 'Hello World!' ${t.needs('build')}`,
+    },
+    {
+      name: 'Download artifact from build job',
+      uses: 'actions/download-artifact@v2',
+      with: {
+        name: t.env('artifact_web_name'), // Compile to '${{ env.artifact_web_name }}'
+      },
+    },
+    {
+      name: 'Get Publish Profile',
+      id: 'get-publish-profile',
+      uses: 'mildronize/actions-az-cli/webapp/deployment/list-publishing-profiles@v1',
+      // with: {
+      //   azure_credentials: t.secrets('AZURE_CREDENTIAL'), // Compile to '${{ secrets.AZURE_CREDENTIAL }}'
+      //   name: t.env('app_name'), // Compile to '${{ env.name }}'
+      //   slot: t.env('slot_name'), // Compile to '${{ env.slot_name }}'
+      //   resource_group: t.env('resource_group'), // Compile to '${{ env.resource_group }}'
+      // },
+    },
+    {
+      name: 'Deploy to Azure Web App',
+      id: 'deploy-to-webapp',
+      uses: 'azure/webapps-deploy@v2',
+      // with: {
+      //   'app-name': t.env('app_name'), // compile to '${{ env.app_name }}'
+      //   'publish-profile': t.steps('get-publish-profile').outputs('publish_profile'), // Compile to '${{ steps.get-publish-profile.outputs.publish_profile }}'
+      //   package: '.',
+      //   'slot-name': t.env('slot_name'), // compile to '${{ env.slot_name }}'
+      // },
+    },
+    {
+      name: `Save stats ${t.env('state_name')}`, // Compile to 'Save stats ${{ env.name }}'
+      if: t.always(), // if: 'always()',
+      run: 'node ./save-stats.js',
+    },
+  ],
+}));
+
+workflow.addJob('build', (t: any) => ({
+  if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
+  needs: ['prepare'],
+  runsOn: 'ubuntu-latest',
+  steps: [
+    {
+      name: 'Checkout',
+      run: `echo 'Hello World!' ${t.var(t.github())}`,
+    },
+  ],
+}));
+
+console.log(JSON.stringify(workflow, null, 2));
+
+export default workflow;

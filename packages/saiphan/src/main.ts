@@ -72,8 +72,7 @@ function wrapVariable(variable: string) {
   return `\${{ ${variable} }}`;
 }
 
-
-export function initWorkflow<
+export function workflowHelper<
   TEnv extends Record<string, string>,
   TJobId extends string
 >(typedWorkflow: TypedWorkflow<TJobId>, option: WorkflowOption<TEnv>) {
@@ -97,5 +96,23 @@ export function initWorkflow<
     or: (...args: string[]) => `(${args.join(' || ')})`,
     // helper
     var: wrapVariable,
-  };
+  }
+}
+
+type Callback = (workflow: ReturnType<typeof workflowHelper>) => WorkflowJobDetail<any>;
+
+export class Workflow {
+  private jobs: any = {};
+  constructor(private typedWorkflow: any, private option: any) {}
+
+  addJob<TJobId extends keyof any>(jobId: TJobId, job: Callback ){
+
+    this.jobs[jobId] = job(workflowHelper(this.typedWorkflow, this.option));
+    return this;
+  }
+
+}
+
+export function initWorkflow(typedWorkflow: any, option: any){
+  return new Workflow(typedWorkflow, option);
 }
