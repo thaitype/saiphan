@@ -52,6 +52,7 @@ export interface WorkflowStepBase {
   name?: string;
   if?: string;
   id?: string;
+  env?: Record<string, string>;
 }
 
 export interface WorkflowStepRun extends WorkflowStepBase {
@@ -86,11 +87,14 @@ export function initWorkflow<
     steps: (id: string) => ({
       outputs: (outputKey: string) => stepOutputs(id, outputKey)
     }),
+    needs: (jobId: TJobId) => wrapVariable(`needs.${String(jobId)}`),
     // Github Expression
     equal: (left: AllowType, right: AllowType) => `${left} == ${right}`,
     // TODO: Check arg is string or variable
     contain: (left: AllowType, right: AllowType) => `contains(${left}, ${right})`,
     always: () => 'always()',
+    and: (...args: string[]) => `(${args.join(' && ')})`,
+    or: (...args: string[]) => `(${args.join(' || ')})`,
     // helper
     var: wrapVariable,
   };

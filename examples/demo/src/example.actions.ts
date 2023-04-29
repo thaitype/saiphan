@@ -33,10 +33,10 @@ const workflows = t.jobs({
     // if: `contains(github.event.pull_request.title, '"') == true`,
     if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
     runsOn: 'ubuntu-latest',
-    needs: ['prepare'],
+    needs: ['build'],
     steps: [
       {
-        run: "echo 'Hello World!'",
+        run: `echo 'Hello World!' ${t.needs('build')}`,
       },
       {
         name: 'Download artifact from build job',

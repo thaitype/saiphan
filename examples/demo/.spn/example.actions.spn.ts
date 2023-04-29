@@ -3,8 +3,16 @@
 
 export default {
   jobs: {
-    prepare: {},
-    deploy: {},
-    build: {},
+    prepare: {
+      availableNeeds: ['build', 'deploy']
+    },
+    deploy: {
+      availableNeeds: ['prepare', 'build'],
+      needs: ['build'],
+    },
+    build: {
+      availableNeeds: ['prepare', 'deploy'],
+      needs: ['prepare'],
+    },
   }
 };
