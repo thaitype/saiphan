@@ -24,7 +24,7 @@ export interface WorkflowOption<T extends Record<string, string>> {
 //   [key: string]: WorkflowJobDetail<TNeeds>;
 // }
 
-export interface WorkflowJobDetail<TAvailableNeeds> {
+export interface WorkflowJobDetailBase<TAvailableNeeds> {
   if?: string;
   runsOn: string;
   needs?: TAvailableNeeds[];
@@ -38,6 +38,10 @@ export interface WorkflowJobDetail<TAvailableNeeds> {
     matrix?: any;
   };
   outputs?: Record<string, string>;
+}
+
+export interface WorkflowJobDetail<TAvailableNeeds>
+  extends WorkflowJobDetailBase<TAvailableNeeds> {
   steps: WorkflowStep[];
 }
 
@@ -56,7 +60,12 @@ export interface WorkflowStepRun extends WorkflowStepBase {
   'working-directory'?: string;
 }
 
-export interface WorkflowStepUses extends WorkflowStepBase {
-  uses: string;
-  with?: Record<string, string | undefined>;
+type WithDefault = Record<string, string | undefined>;
+
+export interface WorkflowStepUses<
+  TUsesActions extends string = string,
+  TWith extends WithDefault = WithDefault
+> extends WorkflowStepBase {
+  uses: TUsesActions;
+  with?: TWith & WithDefault;
 }

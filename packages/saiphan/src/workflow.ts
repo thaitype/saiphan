@@ -3,7 +3,7 @@
 
 import { TypedWorkflowJob } from './spnx.types';
 import { stripIndent } from 'common-tags';
-import { AllowType, WorkflowJobDetail, WorkflowOption } from './types';
+import { AllowType, WorkflowJobDetail, WorkflowOption, WorkflowStepUses } from './types';
 
 /**
  * The value of a specific output.
@@ -39,6 +39,7 @@ export function workflowHelper<
     env: (key: TEnv) => wrapVariable(`env.${String(key)}`),
     secrets: (key: string) => wrapVariable(`secrets.${String(key)}`),
     github: (key?: string) => (key ? `github.${String(key)}` : 'github'),
+    // stepUses: <const TUses extends string>(stepConfig: WorkflowStepUses<TUses>)=> stepConfig,
     /**
      * This context changes for each step in a job.
      * You can access this context from any step in a job.

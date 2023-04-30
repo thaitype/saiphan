@@ -1,7 +1,7 @@
 // Generated file - do not edit manually!
 // Done by command spnx
 
-import { typedWrap, JobDetailCallback } from 'saiphan';
+import { typedWrap, JobDetailCallback, WorkflowJobDetail, workflowHelper, WorkflowStep, WorkflowJobDetailBase, WorkflowStepBase, WorkflowStepRun, WorkflowStepUses } from 'saiphan';
 
 const env = {
   state_name: 'my-state',
@@ -45,7 +45,25 @@ type TNeeds<T extends keyof TJob> = TJob[T]['needs'][number];
  */
 declare module 'saiphan' {
   interface Job {
-    prepare: JobDetailCallback<TEnv, TAvailableNeeds<'prepare'>, TNeeds<'prepare'>>;
+    /**
+     * "With" Prop general type
+     */
+    // prepare: JobDetailCallback<TEnv, TAvailableNeeds<'prepare'>, TNeeds<'prepare'>>;
+    /**
+     * Support "With" Props with Github Actions
+     */
+    // prepare: (
+    //   workflow: ReturnType<
+    //     typeof workflowHelper<TEnv, TNeeds<'prepare'>>
+    //   >
+    // ) => {
+    //   steps: [
+    //     WorkflowStepUses<'actions/checkout@v2', {
+    //       ref?: string
+    //     }>
+    //   ];
+    // } & WorkflowJobDetailBase<TAvailableNeeds<'prepare'>>,
+
     deploy: JobDetailCallback<TEnv, TAvailableNeeds<'deploy'>, TNeeds<'deploy'>>;
     build: JobDetailCallback<TEnv, TAvailableNeeds<'build'>, TNeeds<'build'>>;
   }

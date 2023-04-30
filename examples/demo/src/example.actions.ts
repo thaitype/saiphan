@@ -28,7 +28,12 @@ workflow.job.prepare = (t) => ({
     {
       name: 'Checkout',
       uses: 'actions/checkout@v2',
-    },
+      with: {
+        ref: 'develop',
+        // ref: 'main',
+        aaa: 'efef',
+      }
+    }
   ],
 });
 
