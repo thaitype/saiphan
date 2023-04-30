@@ -1,0 +1,33 @@
+{
+  "name": "saiphan",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "scripts": {
+    "build": "tsup src/main.ts --dts",
+    "dev": "nodemon --watch src --ext ts --exec 'npm run build'",
+    "test": "ava",
+    "test:watch": "ava --watch"
+  },
+  "keywords": [],
+  "author": "Thada Wangthammang",
+  "license": "MIT",
+  "devDependencies": {
+    "ava": "^5.2.0",
+    "esbuild-register": "^3.4.2",
+    "tsx": "^3.12.3"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "esbuild-register"
+    ]
+  },
+  "dependencies": {
+    "@types/common-tags": "^1.8.1",
+    "common-tags": "^1.8.2"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "demo",
+  "version": "1.0.0.alpha.0",
+  "description": "Saiphan demo example",
+  "main": "index.ts",
+  "scripts": {
+    "start": "tsx src/example.actions.ts",
+    "test": "ava",
+    "test:watch": "ava --watch"
+  },
+  "keywords": [],
+  "author": "Thada Wangthammang",
+  "license": "MIT",
+  "dependencies": {
+    "saiphan": "workspace:*",
+    "spnx": "workspace:*"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "esbuild-register"
+    ]
+  }
+}
