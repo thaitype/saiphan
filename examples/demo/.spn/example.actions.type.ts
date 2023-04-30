@@ -3,13 +3,7 @@
 
 import { typedWrap, JobDetailCallback, WorkflowJobDetail, workflowHelper, WorkflowStep, WorkflowJobDetailBase, WorkflowStepBase, WorkflowStepRun, WorkflowStepUses } from 'saiphan';
 
-const env = {
-  state_name: 'my-state',
-  artifact_web_name: 'web_api',
-  app_name: 'web-api',
-  slot_name: 'preview',
-  resource_group: 'my-resource-group',
-};
+const env = ['state_name', 'artifact_web_name', 'app_name', 'slot_name', 'resource_group'];
 
 const jobs = {
   prepare: typedWrap({
@@ -29,7 +23,7 @@ const jobs = {
 /**
  * Define type
  */
-type TEnv = keyof typeof env;
+type TEnv = typeof env[number];
 type TJob = typeof jobs;
 type TAvailableNeeds<T extends keyof TJob> = TJob[T]['availableNeeds'][number];
 type TNeeds<T extends keyof TJob> = TJob[T]['needs'][number];

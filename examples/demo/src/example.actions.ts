@@ -34,8 +34,8 @@ workflow.job.prepare = (t) => ({
       }
     },
     {
-      name: 'Set up .NET Core',
-      uses: 'actions/setup-dotnet@v1',
+      name: 'Set up Node.js',
+      uses: 'actions/setup-node@v1',
     }
   ],
 });
