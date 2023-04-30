@@ -31,8 +31,7 @@ function wrapVariable(variable: string) {
 
 export function workflowHelper<
   TEnv,
-  TNeeds extends string,
-  TOutputs extends string
+  TNeeds extends string
 >(option: WorkflowOption<any>) {
   return {
     // jobs: (jobs: WorkflowJob<any>) => jobs,
@@ -78,19 +77,20 @@ export function workflowHelper<
      * @param jobId
      * @returns
      */
-    needs: (jobId: TNeeds) => ({
-      /**
-       * The set of outputs of a job that the current job depends on.
-       * @param outputKey
-       * @returns
-       */
-      outputs: (outputKey: TOutputs) => needsOutputs(jobId, outputKey),
-      /**
-       * The result of a job that the current job depends on.
-       * Possible values are `success`, `failure`, `cancelled`, or `skipped`.
-       */
-      result: wrapVariable(`needs.${jobId}.result`),
-    }),
+    needs: (needAction: TNeeds) => wrapVariable(`needs.${needAction}`),
+    // ({
+      // /**
+      //  * The set of outputs of a job that the current job depends on.
+      //  * @param outputKey
+      //  * @returns
+      //  */
+      // outputs: (outputKey: TOutputs) => needsOutputs(jobId, outputKey),
+      // /**
+      //  * The result of a job that the current job depends on.
+      //  * Possible values are `success`, `failure`, `cancelled`, or `skipped`.
+      //  */
+      // result: wrapVariable(`needs.${jobId}.result`),
+    // }),
     // Github Expression
     equal: (left: AllowType, right: AllowType) => `${left} == ${right}`,
     // TODO: Check arg is string or variable
@@ -108,11 +108,10 @@ export function workflowHelper<
 export type JobDetailCallback<
   TEnv = string,
   TAvailableNeeds = string,
-  TNeeds extends string = string,
-  TOutputs extends string = string
+  TNeeds extends string = string
 > = (
   workflow: ReturnType<
-    typeof workflowHelper<TEnv, TNeeds, TOutputs>
+    typeof workflowHelper<TEnv, TNeeds>
   >
 ) => WorkflowJobDetail<TAvailableNeeds>;
 

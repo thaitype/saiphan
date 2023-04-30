@@ -21,6 +21,9 @@ const workflow = initWorkflow({
 
 workflow.job.prepare = (t) => ({
   runsOn: 'ubuntu-latest',
+  outputs: {
+    taskType: 'build',
+  },
   steps: [
     {
       name: 'Checkout',
@@ -49,10 +52,10 @@ workflow.job.deploy = (t) => ({
   // if: `contains(github.event.pull_request.title, '"') == true`,
   if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
   runsOn: 'ubuntu-latest',
-  needs: ['build'],
+  needs: ['build', 'prepare'],
   steps: [
     {
-      run: `echo 'Hello World!' ${t.needs('build').outputs('userId')}`,
+      run: `echo 'Hello World!' ${t.needs('build.outputs.userId')} ${t.needs('prepare.outputs.taskType')}`,
     },
     {
       name: 'Download artifact from build job',
