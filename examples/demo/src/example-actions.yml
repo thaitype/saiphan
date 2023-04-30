@@ -1,0 +1,34 @@
+name: my-workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [preview/develop]
+
+env:
+  branch: 'develop'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      taskType: 'build'
+    steps:
+      - uses: actions/checkout@v2
+
+  build:
+    if: contains(github.event.pull_request.title, '"') == true
+    runs-on: ubuntu-latest
+    outputs: {
+      userId: 1234
+    }
+    steps:
+      - name: Hello World
+        run: |
+          echo 'Hello World!'
+          echo ${{ github.event.pull_request.title}}
+          echo ${{ needs.prepare.outputs.taskType}}
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.branch }}

@@ -1,3 +1,4 @@
+// saiphan
 import { initWorkflow } from 'saiphan';
 import '../.spn/example.actions.type';
 
@@ -16,6 +17,7 @@ const workflow = initWorkflow({
     app_name: 'web-api',
     slot_name: 'preview',
     resource_group: 'my-resource-group',
+    branch: 'develop',
   },
 });
 
@@ -30,13 +32,12 @@ workflow.job.prepare = (t) => ({
       uses: 'actions/checkout@v2',
       with: {
         ref: 'develop',
-        aaa: 'efef',
-      }
+      },
     },
     {
       name: 'Set up Node.js',
       uses: 'actions/setup-node@v1',
-    }
+    },
   ],
 });
 
@@ -50,8 +51,18 @@ workflow.job.build = (t) => ({
   runsOn: 'ubuntu-latest',
   steps: [
     {
+      name: 'Hello World',
+      run: t.multiline(/* bash */ `
+        echo 'Hello World!'
+        echo ${t.var(t.github('event.pull_request.title'))}
+        echo ${t.var(t.needs('prepare.outputs.taskType'))}`),
+    },
+    {
       name: 'Checkout',
-      run: `echo 'Hello World!' ${t.var(t.github())} ${t.needs('prepare')}`,
+      uses: 'actions/checkout@v2',
+      with: {
+        ref: t.env('branch'),
+      },
     },
   ],
 });
@@ -104,8 +115,6 @@ workflow.job.deploy = (t) => ({
     },
   ],
 });
-
-
 
 workflow.log();
 

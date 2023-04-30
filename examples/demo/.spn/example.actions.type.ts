@@ -3,7 +3,7 @@
 
 import { typedWrap, JobDetailCallback, WorkflowJobDetail, workflowHelper, WorkflowStep, WorkflowJobDetailBase, WorkflowStepBase, WorkflowStepRun, WorkflowStepUses } from 'saiphan';
 
-const env = ['state_name', 'artifact_web_name', 'app_name', 'slot_name', 'resource_group'];
+const env = ['state_name', 'artifact_web_name', 'app_name', 'slot_name', 'resource_group', 'branch'] as const;
 
 const jobs = {
   prepare: typedWrap({
@@ -16,7 +16,7 @@ const jobs = {
   }),
   build: typedWrap({
     availableNeeds: ['prepare', 'deploy'],
-    needs: ['prepare', 'prepare.result'],
+    needs: ['prepare', 'prepare.result', 'prepare.outputs.taskType'],
   }),
 };
 
