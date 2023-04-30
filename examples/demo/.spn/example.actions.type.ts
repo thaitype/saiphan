@@ -18,14 +18,7 @@ const jobs = {
   }),
   deploy: typedWrap({
     availableNeeds: ['prepare', 'build'],
-    needs: [
-      'build',
-      'build.result',
-      'build.outputs.userId',
-      'prepare',
-      'prepare.result',
-      'prepare.outputs.taskType'
-    ],
+    needs: ['build', 'build.result', 'build.outputs.userId', 'prepare', 'prepare.result', 'prepare.outputs.taskType'],
   }),
   build: typedWrap({
     availableNeeds: ['prepare', 'deploy'],
@@ -48,24 +41,23 @@ declare module 'saiphan' {
     /**
      * "With" Prop general type
      */
-    // prepare: JobDetailCallback<TEnv, TAvailableNeeds<'prepare'>, TNeeds<'prepare'>>;
-    /**
-     * Support "With" Props with Github Actions
-     */
-    // prepare: (
-    //   workflow: ReturnType<
-    //     typeof workflowHelper<TEnv, TNeeds<'prepare'>>
-    //   >
-    // ) => {
-    //   steps: [
-    //     WorkflowStepUses<'actions/checkout@v2', {
-    //       ref?: string
-    //     }>
-    //   ];
-    // } & WorkflowJobDetailBase<TAvailableNeeds<'prepare'>>,
+    prepare: JobDetailCallback<
+      TEnv,
+      TAvailableNeeds<'prepare'>,
+      TNeeds<'prepare'>,
+      [
+        WorkflowStepUses<
+          'actions/checkout@v2',
+          {
+            ref?: string;
+          }
+        >,
+        ...WorkflowStep[]
+      ]
+    >;
 
-    deploy: JobDetailCallback<TEnv, TAvailableNeeds<'deploy'>, TNeeds<'deploy'>>;
-    build: JobDetailCallback<TEnv, TAvailableNeeds<'build'>, TNeeds<'build'>>;
+    deploy: JobDetailCallback<TEnv, TAvailableNeeds<'deploy'>, TNeeds<'deploy'>, [...WorkflowStep[]]>;
+    build: JobDetailCallback<TEnv, TAvailableNeeds<'build'>, TNeeds<'build'>, [...WorkflowStep[]]>;
   }
 }
 

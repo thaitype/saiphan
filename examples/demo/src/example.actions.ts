@@ -30,9 +30,12 @@ workflow.job.prepare = (t) => ({
       uses: 'actions/checkout@v2',
       with: {
         ref: 'develop',
-        // ref: 'main',
         aaa: 'efef',
       }
+    },
+    {
+      name: 'Set up .NET Core',
+      uses: 'actions/setup-dotnet@v1',
     }
   ],
 });

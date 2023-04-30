@@ -1,9 +1,13 @@
 // https://github.com/cicadahq/cicada
 // https://dagger.io/blog/nodejs-sdk
 
-import { TypedWorkflowJob } from './spnx.types';
 import { stripIndent } from 'common-tags';
-import { AllowType, WorkflowJobDetail, WorkflowOption, WorkflowStepUses } from './types';
+import {
+  AllowType,
+  WorkflowJobDetailBase,
+  WorkflowOption,
+  WorkflowStep,
+} from './types';
 
 /**
  * The value of a specific output.
@@ -29,10 +33,9 @@ function wrapVariable(variable: string) {
   return `\${{ ${variable} }}`;
 }
 
-export function workflowHelper<
-  TEnv,
-  TNeeds extends string
->(option: WorkflowOption<any>) {
+export function workflowHelper<TEnv, TNeeds extends string>(
+  option: WorkflowOption<any>
+) {
   return {
     // jobs: (jobs: WorkflowJob<any>) => jobs,
     // TODO: Transform to AST later
@@ -80,17 +83,17 @@ export function workflowHelper<
      */
     needs: (needAction: TNeeds) => wrapVariable(`needs.${needAction}`),
     // ({
-      // /**
-      //  * The set of outputs of a job that the current job depends on.
-      //  * @param outputKey
-      //  * @returns
-      //  */
-      // outputs: (outputKey: TOutputs) => needsOutputs(jobId, outputKey),
-      // /**
-      //  * The result of a job that the current job depends on.
-      //  * Possible values are `success`, `failure`, `cancelled`, or `skipped`.
-      //  */
-      // result: wrapVariable(`needs.${jobId}.result`),
+    // /**
+    //  * The set of outputs of a job that the current job depends on.
+    //  * @param outputKey
+    //  * @returns
+    //  */
+    // outputs: (outputKey: TOutputs) => needsOutputs(jobId, outputKey),
+    // /**
+    //  * The result of a job that the current job depends on.
+    //  * Possible values are `success`, `failure`, `cancelled`, or `skipped`.
+    //  */
+    // result: wrapVariable(`needs.${jobId}.result`),
     // }),
     // Github Expression
     equal: (left: AllowType, right: AllowType) => `${left} == ${right}`,
@@ -109,12 +112,11 @@ export function workflowHelper<
 export type JobDetailCallback<
   TEnv = string,
   TAvailableNeeds = string,
-  TNeeds extends string = string
-> = (
-  workflow: ReturnType<
-    typeof workflowHelper<TEnv, TNeeds>
-  >
-) => WorkflowJobDetail<TAvailableNeeds>;
+  TNeeds extends string = string,
+  TWorkflowSteps extends WorkflowStep[] = WorkflowStep[]
+> = (workflow: ReturnType<typeof workflowHelper<TEnv, TNeeds>>) => {
+  steps: TWorkflowSteps;
+} & WorkflowJobDetailBase<TAvailableNeeds>;
 
 export interface Job extends Record<string, JobDetailCallback> {}
 
