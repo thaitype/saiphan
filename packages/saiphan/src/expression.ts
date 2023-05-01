@@ -2,8 +2,8 @@
 interface ExpBase<TType extends string, TInput extends unknown[], TOutput> {
   type: TType;
   input: TInput,
-  // output: TOutput;
   eval: () => TOutput;
+  stringify: () => string;
 }
 
 type ExpEqualParams = [Expression, Expression];
@@ -23,6 +23,12 @@ type Expression = ExpressionBoolean | ExpressionString;
 type T = {
   equal: (...args: ExpEqualParams) => ExpEqual,
   string: (...args: ExpStringParams) => ExpString,
+  var: (arg: Expression) => string,
+  // or: (exp1: ExpressionBoolean, exp2: ExpressionBoolean) => ExpressionBoolean,
+}
+
+function wrapVariable(variable: string) {
+  return `\${{ ${variable} }}`;
 }
 
 const t: T = {
@@ -30,7 +36,7 @@ const t: T = {
       type: 'Equal',
       input: [exp1, exp2],
       eval: () => exp1.eval() === exp2.eval(),
-      // output: exp1.output === exp2.output,
+      stringify: () => `(${exp1.stringify()} == ${exp2.stringify()})`,
   }),
   // contain: (search: ExpressionString, item: ExpressionString) => ({
   //     type: 'Contain',
@@ -40,15 +46,22 @@ const t: T = {
   //     type: 'Github'
   // }) as ExpGithub,
   string: (value) => ({
-      // output: value,
+      stringify: () => `"${value}"`,
       input: [value],
       type: 'String',
       eval: () => value,
   }),
+  var: (arg) => wrapVariable(arg.stringify()),
   // boolean: (value: boolean) => ({
   //     output: value,
   //     type: 'Boolean'
   // }) as ExpBoolean,
+  // or: (exp1: ExpressionBoolean, exp2: ExpressionBoolean) => ({
+  //     type: 'Or',
+  //     input: [exp1, exp2],
+  //     eval: () => exp1.eval() || exp2.eval(),
+   //   stringify: () => `${exp1.stringify()} || ${exp2.stringify()}`,
+  // }),
 }
 
 // if: `contains(github.event.pull_request.title, '"') == true`,
@@ -59,10 +72,18 @@ const t: T = {
 
 // const exp1: Expression = t.string('lk');
 
-const expression: Expression = t.equal(t.string('555'), t.string('555'));
+const expression: Expression = t.equal(t.equal(t.string('555'), t.string('555')), t.string('demo'));
 
 console.log(JSON.stringify(expression, null, 2))
 
 type A = typeof expression.input[0]
 
 console.log(`eval: ${expression.eval()}`);
+console.log(`stringify: ${expression.stringify()}`);
+
+console.log(`inline string template: ${t.var(expression)}`);
+
+
+const aa =  "(needs.deploy-web.result == 'success' || needs.deploy-web.result == 'skipped') "
+
+// const bb = t.or(t.equal(t.needs('deploy-web.result'), t.string('success')), t.equal(t.needs('deploy-web.result'), t.string('skipped')))
