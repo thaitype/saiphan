@@ -7,8 +7,11 @@ export interface ExpBase<
   input: TInput;
   eval: () => TOutput;
   toString: () => string;
+  /**
+   * Unwrap Expression
+   */
+  stringify: () => string;
 }
-
 /**
  * Return Type Expression Equal
  */

@@ -23,6 +23,7 @@ const workflow = initWorkflow({
 
 workflow.job.prepare = (t) => ({
   runsOn: 'ubuntu-latest',
+  if: t.contain(t.string('Hello World'), t.string('World')),
   outputs: {
     taskType: 'build',
   },
@@ -41,80 +42,80 @@ workflow.job.prepare = (t) => ({
   ],
 });
 
-// This way may use `spn.ts` to add type checking.
-workflow.job.build = (t) => ({
-  if: t.equal(t.string('test'), t.boolean(true)),
-  needs: ['prepare'],
-  outputs: {
-    userId: '1234',
-  },
-  runsOn: 'ubuntu-latest',
-  steps: [
-    {
-      name: 'Hello World',
-      run: t.multiline(/* bash */ `
-        echo 'Hello World!'
-        echo ${t.exp(t.github('event.pull_request.title'))}
-        echo ${t.exp(t.needs('prepare.outputs.taskType'))}`),
-    },
-    {
-      name: 'Checkout',
-      uses: 'actions/checkout@v2',
-      with: {
-        ref: t.env('branch'),
-      },
-    },
-  ],
-});
+// // This way may use `spn.ts` to add type checking.
+// workflow.job.build = (t) => ({
+//   if: t.equal(t.string('test'), t.boolean(true)),
+//   needs: ['prepare'],
+//   outputs: {
+//     userId: '1234',
+//   },
+//   runsOn: 'ubuntu-latest',
+//   steps: [
+//     {
+//       name: 'Hello World',
+//       run: t.multiline(/* bash */ `
+//         echo 'Hello World!'
+//         echo ${t.github('event.pull_request.title')}
+//         echo ${t.needs('prepare.outputs.taskType')}`),
+//     },
+//     {
+//       name: 'Checkout',
+//       uses: 'actions/checkout@v2',
+//       with: {
+//         ref: t.env('branch'),
+//       },
+//     },
+//   ],
+// });
 
-workflow.job.deploy = (t) => ({
-  // if: `contains(github.event.pull_request.title, '"') == true`,
-  if: t.equal(t.contain(t.github('event.pull_request.title'), t.string('"')), t.boolean(true)),
-  runsOn: 'ubuntu-latest',
-  needs: ['build', 'prepare'],
-  steps: [
-    {
-      run: `echo 'Hello World!' ${t.needs('build.outputs.userId')} ${t.needs('prepare.outputs.taskType')}`,
-    },
-    {
-      name: 'Download artifact from build job',
-      uses: 'actions/download-artifact@v2',
-      with: {
-        name: t.env('artifact_web_name'), // Compile to '${{ env.artifact_web_name }}'
-      },
-    },
-    {
-      name: 'Get Publish Profile',
-      id: 'get-publish-profile',
-      uses: 'mildronize/actions-az-cli/webapp/deployment/list-publishing-profiles@v1',
-      with: {
-        azure_credentials: t.secrets('AZURE_CREDENTIAL'), // Compile to '${{ secrets.AZURE_CREDENTIAL }}'
-        name: t.env('app_name'), // Compile to '${{ env.name }}'
-        slot: t.env('slot_name'), // Compile to '${{ env.slot_name }}'
-        resource_group: t.env('resource_group'), // Compile to '${{ env.resource_group }}'
-      },
-    },
-    {
-      name: 'Deploy to Azure Web App',
-      id: 'deploy-to-webapp',
-      uses: 'azure/webapps-deploy@v2',
-      with: {
-        'app-name': t.env('app_name'), // compile to '${{ env.app_name }}'
-        'publish-profile': t.steps('get-publish-profile').outputs('publish_profile'), // Compile to '${{ steps.get-publish-profile.outputs.publish_profile }}'
-        package: '.',
-        'slot-name': t.env('slot_name'), // compile to '${{ env.slot_name }}'
-      },
-    },
-    {
-      name: `Save stats ${t.env('state_name')}`, // Compile to 'Save stats ${{ env.name }}'
-      if: t.always(),
-      run: t.multiline(/* bash */ `
-        # Multi-line support (common-tags npm)
-        node ./save-stats.js
-        `),
-    },
-  ],
-});
+// workflow.job.deploy = (t) => ({
+//   // if: `contains(github.event.pull_request.title, '"') == true`,
+//   if: t.equal(t.contain(t.github('event.pull_request.title'), t.string('"')), t.boolean(true)),
+//   runsOn: 'ubuntu-latest',
+//   needs: ['build', 'prepare'],
+//   steps: [
+//     {
+//       run: `echo 'Hello World!' ${t.needs('build.outputs.userId')} ${t.needs('prepare.outputs.taskType')}`,
+//     },
+//     {
+//       name: 'Download artifact from build job',
+//       uses: 'actions/download-artifact@v2',
+//       with: {
+//         name: t.env('artifact_web_name'), // Compile to '${{ env.artifact_web_name }}'
+//       },
+//     },
+//     {
+//       name: 'Get Publish Profile',
+//       id: 'get-publish-profile',
+//       uses: 'mildronize/actions-az-cli/webapp/deployment/list-publishing-profiles@v1',
+//       with: {
+//         azure_credentials: t.secrets('AZURE_CREDENTIAL'), // Compile to '${{ secrets.AZURE_CREDENTIAL }}'
+//         name: t.env('app_name'), // Compile to '${{ env.name }}'
+//         slot: t.env('slot_name'), // Compile to '${{ env.slot_name }}'
+//         resource_group: t.env('resource_group'), // Compile to '${{ env.resource_group }}'
+//       },
+//     },
+//     {
+//       name: 'Deploy to Azure Web App',
+//       id: 'deploy-to-webapp',
+//       uses: 'azure/webapps-deploy@v2',
+//       with: {
+//         'app-name': t.env('app_name'), // compile to '${{ env.app_name }}'
+//         'publish-profile': t.steps('get-publish-profile').outputs('publish_profile'), // Compile to '${{ steps.get-publish-profile.outputs.publish_profile }}'
+//         package: '.',
+//         'slot-name': t.env('slot_name'), // compile to '${{ env.slot_name }}'
+//       },
+//     },
+//     {
+//       name: `Save stats ${t.env('state_name')}`, // Compile to 'Save stats ${{ env.name }}'
+//       if: t.always(),
+//       run: t.multiline(/* bash */ `
+//         # Multi-line support (common-tags npm)
+//         node ./save-stats.js
+//         `),
+//     },
+//   ],
+// });
 
 workflow.log();
 
