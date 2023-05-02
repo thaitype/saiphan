@@ -83,7 +83,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      * @returns
      */
     needs: (needAction: TNeeds) => ({
-      stringify: () => `needs.${needAction}`,
+      toString: () => `needs.${needAction}`,
       input: [needAction],
       type: 'Needs',
       eval: ()=> 'undefined mock data',
@@ -91,7 +91,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
 
     // github: (key?: string) => (key ? `github.${String(key)}` : 'github'),
     github: (key?: string) => ({
-      stringify: () => ['github', key].join('.'),
+      toString: () => ['github', key].join('.'),
       input: [key],
       type: 'Github',
       eval: ()=> 'undefined mock data',
@@ -100,7 +100,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
     // --------------------------------------------------------------------------------
     // Github Expression
     // --------------------------------------------------------------------------------
-    exp: (exp: Exp.Expression) => wrapVariable(exp.stringify()),
+    exp: (exp: Exp.Expression) => wrapVariable(exp.toString()),
     /**
      * Expression Equal Factory Function
      *
@@ -118,7 +118,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         type: 'Equal',
         input: [args[0], args[1]],
         eval: () => args[0].eval() === args[1].eval(),
-        stringify: () => `(${args[0].stringify()} == ${args[1].stringify()})`,
+        toString: () => `(${args[0].toString()} == ${args[1].toString()})`,
       } as Exp.ExpEqual),
     /**
      * Expression String Factory Function
@@ -135,7 +135,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      */
     string: (...args: Exp.ExpString['input']) =>
       ({
-        stringify: () => `"${args[0]}"`,
+        toString: () => `"${args[0]}"`,
         input: [args[0]],
         type: 'String',
         eval: () => args[0],
@@ -155,7 +155,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      */
     boolean: (...args: Exp.ExpBoolean['input']) =>
       ({
-        stringify: () => `${args[0]}`,
+        toString: () => `${args[0]}`,
         input: [args[0]],
         type: 'Boolean',
         eval: () => args[0],
@@ -175,15 +175,15 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      */
     contain: (...args: Exp.ExpContain['input']) =>
       ({
-        stringify: () =>
-          `contains(${args[0].stringify()}, ${args[1].stringify()})`,
+        toString: () =>
+          `contains(${args[0].toString()}, ${args[1].toString()})`,
         input: [args[0], args[1]],
         type: 'Contain',
         eval: () => args[0].eval().includes(args[1].eval()),
       } as Exp.ExpContain),
     always: () =>
       ({
-        stringify: () => 'always()',
+        toString: () => 'always()',
         type: 'Always',
         eval: () => true,
         input: [],

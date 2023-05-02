@@ -6,7 +6,7 @@ export interface ExpBase<
   type: TType;
   input: TInput;
   eval: () => TOutput;
-  stringify: () => string;
+  toString: () => string;
 }
 
 /**
