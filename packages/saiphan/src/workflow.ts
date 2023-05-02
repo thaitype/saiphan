@@ -42,7 +42,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
     // TODO: Transform to AST later
     env: (key: TEnv) => wrapVariable(`env.${String(key)}`),
     secrets: (key: string) => wrapVariable(`secrets.${String(key)}`),
-    github: (key?: string) => (key ? `github.${String(key)}` : 'github'),
+
     // stepUses: <const TUses extends string>(stepConfig: WorkflowStepUses<TUses>)=> stepConfig,
     /**
      * This context changes for each step in a job.
@@ -82,7 +82,20 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      * @param jobId
      * @returns
      */
-    needs: (needAction: TNeeds) => wrapVariable(`needs.${needAction}`),
+    needs: (needAction: TNeeds) => ({
+      stringify: () => `needs.${needAction}`,
+      input: [needAction],
+      type: 'Needs',
+      eval: ()=> 'undefined mock data',
+    } as Exp.ExpNeeds<TNeeds>),
+
+    // github: (key?: string) => (key ? `github.${String(key)}` : 'github'),
+    github: (key?: string) => ({
+      stringify: () => ['github', key].join('.'),
+      input: [key],
+      type: 'Github',
+      eval: ()=> 'undefined mock data',
+    } as Exp.ExpGithub),
 
     // --------------------------------------------------------------------------------
     // Github Expression
@@ -175,6 +188,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         eval: () => true,
         input: [],
       } as Exp.ExpAlways),
+
 
     and: (...args: string[]) => `(${args.join(' && ')})`,
     or: (...args: string[]) => `(${args.join(' || ')})`,
