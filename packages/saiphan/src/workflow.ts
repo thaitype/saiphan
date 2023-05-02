@@ -8,6 +8,11 @@ import {
   WorkflowOption,
   WorkflowStep,
 } from './types';
+import * as Exp from './expression';
+
+export function wrapVariable(variable: string) {
+  return `\${{ ${variable} }}`;
+}
 
 /**
  * The value of a specific output.
@@ -27,10 +32,6 @@ function stepOutputs(stepId: string, key: string) {
  */
 function needsOutputs(jobId: string, key: string) {
   return wrapVariable(`needs.${jobId}.outputs.${key}`);
-}
-
-function wrapVariable(variable: string) {
-  return `\${{ ${variable} }}`;
 }
 
 export function workflowHelper<TEnv, TNeeds extends string>(
@@ -82,29 +83,104 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      * @returns
      */
     needs: (needAction: TNeeds) => wrapVariable(`needs.${needAction}`),
-    // ({
-    // /**
-    //  * The set of outputs of a job that the current job depends on.
-    //  * @param outputKey
-    //  * @returns
-    //  */
-    // outputs: (outputKey: TOutputs) => needsOutputs(jobId, outputKey),
-    // /**
-    //  * The result of a job that the current job depends on.
-    //  * Possible values are `success`, `failure`, `cancelled`, or `skipped`.
-    //  */
-    // result: wrapVariable(`needs.${jobId}.result`),
-    // }),
+
+    // --------------------------------------------------------------------------------
     // Github Expression
-    equal: (left: AllowType, right: AllowType) => `${left} == ${right}`,
-    // TODO: Check arg is string or variable
-    contain: (left: AllowType, right: AllowType) =>
-      `contains(${left}, ${right})`,
-    always: () => 'always()',
+    // --------------------------------------------------------------------------------
+    exp: (exp: Exp.Expression) => wrapVariable(exp.stringify()),
+    /**
+     * Expression Equal Factory Function
+     *
+     * @example
+     *
+     * ```ts
+     * const exp = t.equal(t.string('my-value'), t.string('my-value'))
+     * exp.eval() // Result: true
+     * ```
+     * @param args
+     * @returns ExpEqual
+     */
+    equal: (...args: Exp.ExpEqual['input']) =>
+      ({
+        type: 'Equal',
+        input: [args[0], args[1]],
+        eval: () => args[0].eval() === args[1].eval(),
+        stringify: () => `(${args[0].stringify()} == ${args[1].stringify()})`,
+      } as Exp.ExpEqual),
+    /**
+     * Expression String Factory Function
+     *
+     * @example
+     *
+     * ```ts
+     * const exp = t.string('my-value');
+     * exp.eval() // Result: my-value
+     * ```
+     *
+     * @param args string
+     * @returns ExpString
+     */
+    string: (...args: Exp.ExpString['input']) =>
+      ({
+        stringify: () => `"${args[0]}"`,
+        input: [args[0]],
+        type: 'String',
+        eval: () => args[0],
+      } as Exp.ExpString),
+
+    /**
+     * Expression Boolean Factory Function
+     *
+     * @example
+     *
+     * ```ts
+     * t.boolean(true)
+     * ```
+     *
+     * @param args boolean
+     * @returns ExpBoolean
+     */
+    boolean: (...args: Exp.ExpBoolean['input']) =>
+      ({
+        stringify: () => `${args[0]}`,
+        input: [args[0]],
+        type: 'Boolean',
+        eval: () => args[0],
+      } as Exp.ExpBoolean),
+    /**
+     * Expression Contain Factory Function
+     *
+     * @example
+     *
+     * ```ts
+     * const exp = t.contain(t.string('Hello World'), t.string('hello'))
+     * exp.eval() // Result: true
+     * ```
+     *
+     * @param args boolean
+     * @returns ExpBoolean
+     */
+    contain: (...args: Exp.ExpContain['input']) =>
+      ({
+        stringify: () =>
+          `contains(${args[0].stringify()}, ${args[1].stringify()})`,
+        input: [args[0], args[1]],
+        type: 'Contain',
+        eval: () => args[0].eval().includes(args[1].eval()),
+      } as Exp.ExpContain),
+    always: () =>
+      ({
+        stringify: () => 'always()',
+        type: 'Always',
+        eval: () => true,
+        input: [],
+      } as Exp.ExpAlways),
+
     and: (...args: string[]) => `(${args.join(' && ')})`,
     or: (...args: string[]) => `(${args.join(' || ')})`,
-    // helper
-    var: wrapVariable,
+    // --------------------------------------------------------------------------------
+    // Helper
+    // --------------------------------------------------------------------------------
     multiline: (text: string) => stripIndent`|\n${text}`,
   };
 }

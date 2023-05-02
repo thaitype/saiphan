@@ -43,7 +43,7 @@ workflow.job.prepare = (t) => ({
 
 // This way may use `spn.ts` to add type checking.
 workflow.job.build = (t) => ({
-  if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), false),
+  if: t.equal(t.string('test'), t.boolean(true)),
   needs: ['prepare'],
   outputs: {
     userId: '1234',
@@ -54,8 +54,8 @@ workflow.job.build = (t) => ({
       name: 'Hello World',
       run: t.multiline(/* bash */ `
         echo 'Hello World!'
-        echo ${t.var(t.github('event.pull_request.title'))}
-        echo ${t.var(t.needs('prepare.outputs.taskType'))}`),
+        echo ${t.exp(t.github('event.pull_request.title'))}
+        echo ${t.exp(t.needs('prepare.outputs.taskType'))}`),
     },
     {
       name: 'Checkout',
@@ -69,7 +69,7 @@ workflow.job.build = (t) => ({
 
 workflow.job.deploy = (t) => ({
   // if: `contains(github.event.pull_request.title, '"') == true`,
-  if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
+  if: t.equal(t.contain(t.github('event.pull_request.title'), t.string('"')), t.boolean(true)),
   runsOn: 'ubuntu-latest',
   needs: ['build', 'prepare'],
   steps: [
