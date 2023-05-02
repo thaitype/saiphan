@@ -21,15 +21,6 @@ import { unwrapVariable, wrapVariable } from './utils';
 function stepOutputs(stepId: string, key: string) {
   return wrapVariable(`steps.${stepId}.outputs.${key}`);
 }
-/**
- * The value of a specific output for a job that the current job depends on.
- * @param jobId
- * @param key
- * @returns
- */
-function needsOutputs(jobId: string, key: string) {
-  return wrapVariable(`needs.${jobId}.outputs.${key}`);
-}
 
 export function workflowHelper<TEnv, TNeeds extends string>(
   option: WorkflowOption<any>
@@ -81,21 +72,21 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      */
     needs: (needAction: TNeeds) =>
       ({
-        toString: () => wrapVariable(`needs.${needAction}`),
         input: [needAction],
         type: 'Needs',
         eval: () => 'undefined mock data',
-        stringify: () => unwrapVariable(this.toString()),
-      } as Exp.ExpNeeds<TNeeds>),
+        toString: () => wrapVariable(`needs.${needAction}`),
+        stringify: () => unwrapVariable(`needs.${needAction}`),
+      } satisfies Exp.ExpNeeds<TNeeds>),
 
-    // github: (key?: string) => (key ? `github.${String(key)}` : 'github'),
-    github: (key?: string) =>
+    github: (...args: Exp.ExpGithub['input']) =>
       ({
-        toString: () => wrapVariable(['github', key].join('.')),
-        input: [key],
+        input: [args[0]],
         type: 'Github',
         eval: () => 'undefined mock data',
-      } as Exp.ExpGithub),
+        toString: () => wrapVariable(['github', args[0]].join('.')),
+        stringify: () => unwrapVariable(['github', args[0]].join('.')),
+      } satisfies Exp.ExpGithub),
 
     // --------------------------------------------------------------------------------
     // Github Expression
@@ -120,7 +111,9 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         eval: () => args[0].eval() === args[1].eval(),
         toString: () =>
           wrapVariable(`(${args[0].toString()} == ${args[1].toString()})`),
-      } as Exp.ExpEqual),
+        stringify: () =>
+          unwrapVariable(`(${args[0].stringify()} == ${args[1].stringify()})`),
+      } satisfies Exp.ExpEqual),
     /**
      * Expression String Factory Function
      *
@@ -157,11 +150,12 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      */
     boolean: (...args: Exp.ExpBoolean['input']) =>
       ({
-        toString: () => wrapVariable(`${args[0]}`),
         input: [args[0]],
         type: 'Boolean',
         eval: () => args[0],
-      } as Exp.ExpBoolean),
+        toString: () => wrapVariable(`${args[0]}`),
+        stringify: () => unwrapVariable(`${args[0]}`),
+      } satisfies Exp.ExpBoolean),
     /**
      * Expression Contain Factory Function
      *
@@ -191,11 +185,12 @@ export function workflowHelper<TEnv, TNeeds extends string>(
       } satisfies Exp.ExpContain),
     always: () =>
       ({
-        toString: () => wrapVariable('always()'),
         type: 'Always',
         eval: () => true,
         input: [],
-      } as Exp.ExpAlways),
+        toString: () => wrapVariable('always()'),
+        stringify: () => unwrapVariable('always()'),
+      } satisfies Exp.ExpAlways),
 
     and: (...args: string[]) => `(${args.join(' && ')})`,
     or: (...args: string[]) => `(${args.join(' || ')})`,
