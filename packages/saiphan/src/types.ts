@@ -1,3 +1,5 @@
+import { Expression } from "./expression";
+
 export type AllowType = string | boolean;
 
 export type PullRequestEvent = {
@@ -25,7 +27,7 @@ export interface WorkflowOption<T extends Record<string, string>> {
 // }
 
 export interface WorkflowJobDetailBase<TAvailableNeeds> {
-  if?: string;
+  if?: Expression;
   runsOn: string;
   needs?: TAvailableNeeds[];
   timeoutMinutes?: number;
@@ -49,7 +51,7 @@ export type WorkflowStep = WorkflowStepRun | WorkflowStepUses;
 
 export interface WorkflowStepBase {
   name?: string;
-  if?: string;
+  if?: Expression;
   id?: string;
   env?: Record<string, string>;
   'continue-on-error'?: boolean;
