@@ -134,16 +134,14 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      * @param args string
      * @returns ExpString
      */
-    string: (...args: Exp.ExpString['input']) => {
-      const toString = () => wrapVariable(`"${args[0]}"`);
-      return {
-        toString: () => wrapVariable(`"${args[0]}"`),
+    string: (...args: Exp.ExpString['input']) =>
+      ({
         input: [args[0]],
         type: 'String',
         eval: () => args[0],
-        stringify: () => unwrapVariable(toString()),
-      } satisfies Exp.ExpString;
-    },
+        toString: () => wrapVariable(`"${args[0]}"`),
+        stringify: () => unwrapVariable(`"${args[0]}"`),
+      } satisfies Exp.ExpString),
 
     /**
      * Expression Boolean Factory Function
@@ -177,20 +175,20 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      * @param args boolean
      * @returns ExpBoolean
      */
-    contain: (...args: Exp.ExpContain['input']) => {
-
-      const toString = () =>
-        `contains(${args[0].toString()}, ${args[1].toString()})`;
-      const stringify = () =>
-        `contains(${args[0].stringify()}, ${args[1].stringify()})`;
-      return {
-        toString: () => wrapVariable(toString()),
+    contain: (...args: Exp.ExpContain['input']) =>
+      ({
         input: [args[0], args[1]],
         type: 'Contain',
         eval: () => args[0].eval().includes(args[1].eval()),
-        stringify: () => unwrapVariable(stringify()),
-      } satisfies Exp.ExpContain;
-    },
+        toString: () =>
+          wrapVariable(
+            `contains(${args[0].toString()}, ${args[1].toString()})`
+          ),
+        stringify: () =>
+          unwrapVariable(
+            `contains(${args[0].stringify()}, ${args[1].stringify()})`
+          ),
+      } satisfies Exp.ExpContain),
     always: () =>
       ({
         toString: () => wrapVariable('always()'),
