@@ -1,68 +1,69 @@
-
 interface ExpBase<TType extends string, TInput extends unknown[], TOutput> {
   type: TType;
-  input: TInput,
+  input: TInput;
   eval: () => TOutput;
   stringify: () => string;
 }
 
-type ExpEqualParams = [Expression, Expression];
-interface ExpEqual extends ExpBase<'Equal', ExpEqualParams, boolean> { }
-
 // type ExpContain
 // interface ExpContain extends ExpBase<'Contain', boolean> { }
 // interface ExpGithub extends ExpBase<'Github', string> { }
-type ExpStringParams = [string];
-interface ExpString extends ExpBase<'String', ExpStringParams, string> { }
+
 // interface ExpBoolean extends ExpBase<'Boolean', boolean> {}
-
-type ExpressionBoolean = ExpEqual;
-type ExpressionString = ExpString;
-type Expression = ExpressionBoolean | ExpressionString;
-
-type T = {
-  equal: (...args: ExpEqualParams) => ExpEqual,
-  string: (...args: ExpStringParams) => ExpString,
-  var: (arg: Expression) => string,
-  // or: (exp1: ExpressionBoolean, exp2: ExpressionBoolean) => ExpressionBoolean,
-}
 
 function wrapVariable(variable: string) {
   return `\${{ ${variable} }}`;
 }
 
-const t: T = {
-  equal: (exp1, exp2) => ({
-      type: 'Equal',
-      input: [exp1, exp2],
-      eval: () => exp1.eval() === exp2.eval(),
-      stringify: () => `(${exp1.stringify()} == ${exp2.stringify()})`,
-  }),
-  // contain: (search: ExpressionString, item: ExpressionString) => ({
-  //     type: 'Contain',
-  //     output: search.output.indexOf(item.output) >= 0,
-  // }) as ExpContain,
-  // github: (...args: any[]) => ({
-  //     type: 'Github'
-  // }) as ExpGithub,
-  string: (value) => ({
-      stringify: () => `"${value}"`,
-      input: [value],
-      type: 'String',
-      eval: () => value,
-  }),
-  var: (arg) => wrapVariable(arg.stringify()),
-  // boolean: (value: boolean) => ({
-  //     output: value,
-  //     type: 'Boolean'
-  // }) as ExpBoolean,
-  // or: (exp1: ExpressionBoolean, exp2: ExpressionBoolean) => ({
-  //     type: 'Or',
-  //     input: [exp1, exp2],
-  //     eval: () => exp1.eval() || exp2.eval(),
-   //   stringify: () => `${exp1.stringify()} || ${exp2.stringify()}`,
-  // }),
+/**
+ * Return Type Expression Equal
+ */
+
+export type ExpEqual = ExpBase<'Equal', [Expression, Expression], boolean>;
+
+/**
+ * Expression Equal Factory Function
+ * @param args
+ * @returns
+ */
+function equal(...args: ExpEqual['input']): ExpEqual {
+  return {
+    type: 'Equal',
+    input: [args[0], args[1]],
+    eval: () => args[0].eval() === args[1].eval(),
+    stringify: () => `(${args[0].stringify()} == ${args[1].stringify()})`,
+  };
 }
+
+type ExpString = ExpBase<'String', [string], string>;
+function string(...args: ExpString['input']): ExpString {
+  return {
+    stringify: () => `"${args[0]}"`,
+    input: [args[0]],
+    type: 'String',
+    eval: () => args[0],
+  };
+}
+
+function exp(arg: Expression){
+  return wrapVariable(arg.stringify());
+}
+// ----------------------------
+
+
+type ExpressionBoolean = ExpEqual;
+type ExpressionString = ExpString;
+
+/**
+ * All Available Expressions
+ */
+type Expression = ExpressionBoolean | ExpressionString;
+
+const t = {
+  equal,
+  string,
+  exp,
+};
 
 // if: `contains(github.event.pull_request.title, '"') == true`,
 // const expression: Expression = t.equal(
@@ -70,20 +71,39 @@ const t: T = {
 //     t.boolean(true)
 // );
 
-// const exp1: Expression = t.string('lk');
 
-const expression: Expression = t.equal(t.equal(t.string('555'), t.string('555')), t.string('demo'));
+const expression: Expression = t.equal(
+  t.equal(t.string('555'), t.string('555')),
+  t.string('demo')
+);
 
-console.log(JSON.stringify(expression, null, 2))
+console.log(JSON.stringify(expression, null, 2));
 
-type A = typeof expression.input[0]
+type A = (typeof expression.input)[0];
 
 console.log(`eval: ${expression.eval()}`);
 console.log(`stringify: ${expression.stringify()}`);
+console.log(`inline string template: ${t.exp(expression)}`);
 
-console.log(`inline string template: ${t.var(expression)}`);
-
-
-const aa =  "(needs.deploy-web.result == 'success' || needs.deploy-web.result == 'skipped') "
+const aa =
+  "(needs.deploy-web.result == 'success' || needs.deploy-web.result == 'skipped') ";
 
 // const bb = t.or(t.equal(t.needs('deploy-web.result'), t.string('success')), t.equal(t.needs('deploy-web.result'), t.string('skipped')))
+
+// contain: (search: ExpressionString, item: ExpressionString) => ({
+//     type: 'Contain',
+//     output: search.output.indexOf(item.output) >= 0,
+// }) as ExpContain,
+// github: (...args: any[]) => ({
+//     type: 'Github'
+// }) as ExpGithub,
+// boolean: (value: boolean) => ({
+//     output: value,
+//     type: 'Boolean'
+// }) as ExpBoolean,
+// or: (exp1: ExpressionBoolean, exp2: ExpressionBoolean) => ({
+//     type: 'Or',
+//     input: [exp1, exp2],
+//     eval: () => exp1.eval() || exp2.eval(),
+//   stringify: () => `${exp1.stringify()} || ${exp2.stringify()}`,
+// }),
