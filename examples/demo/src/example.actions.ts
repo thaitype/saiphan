@@ -23,7 +23,7 @@ const workflow = initWorkflow({
 
 workflow.job.prepare = (t) => ({
   runsOn: 'ubuntu-latest',
-  if: t.contain(t.string('Hello World'), t.string('World')),
+  if: t.contain('Hello World', 'World'),
   outputs: {
     taskType: 'build',
   },
@@ -44,7 +44,7 @@ workflow.job.prepare = (t) => ({
 
 // This way may use `spn.ts` to add type checking.
 workflow.job.build = (t) => ({
-  if: t.equal(t.string('test'), t.boolean(true)),
+  if: t.equal('test', true),
   needs: ['prepare'],
   outputs: {
     userId: '1234',
@@ -70,7 +70,7 @@ workflow.job.build = (t) => ({
 
 workflow.job.deploy = (t) => ({
   // if: `contains(github.event.pull_request.title, '"') == true`,
-  if: t.equal(t.contain(t.github('event.pull_request.title'), t.string('"')), t.boolean(true)),
+  if: t.equal(t.contain(t.github('event.pull_request.title'), '"'), true),
   runsOn: 'ubuntu-latest',
   needs: ['build', 'prepare'],
   steps: [

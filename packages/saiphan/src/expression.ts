@@ -15,19 +15,20 @@ export interface ExpBase<
 /**
  * Return Type Expression Equal
  */
-export type ExpEqual = ExpBase<'Equal', [Expression, Expression], boolean>;
+type ExpEqualParam = Expression | string | boolean;
+export type ExpEqual = ExpBase<'Equal', [ExpEqualParam, ExpEqualParam], boolean>;
 /**
  * Return Type Expression String
  */
-export type ExpString = ExpBase<'String', [string], string>;
+// export type ExpString = ExpBase<'String', [string], string>;
 /**
  * Return Type Expression Boolean
  */
-export type ExpBoolean = ExpBase<'Boolean', [boolean], boolean>;
+// export type ExpBoolean = ExpBase<'Boolean', [boolean], boolean>;
 /**
  * Return Type Expression Contain
  */
-type ExpContainParam = ExpressionString | ExpGithub | ExpNeeds;
+type ExpContainParam = ExpressionString | ExpGithub | ExpNeeds | string;
 export type ExpContain = ExpBase<
   'Contain',
   [ExpContainParam, ExpContainParam],
@@ -61,8 +62,8 @@ export type ExpGithub<TOutput = any> = ExpBase<
 >;
 // ----------------------------
 
-export type ExpressionBoolean = ExpEqual | ExpBoolean | ExpContain | ExpAlways;
-export type ExpressionString = ExpString;
+export type ExpressionBoolean = ExpEqual | ExpContain | ExpAlways;
+export type ExpressionString = never;
 
 /**
  * All Available Expressions

@@ -108,54 +108,69 @@ export function workflowHelper<TEnv, TNeeds extends string>(
       ({
         type: 'Equal',
         input: [args[0], args[1]],
-        eval: () => args[0].eval() === args[1].eval(),
+        eval: () => {
+          const getValue = (arg: Exp.ExpEqual['input'][number]) =>
+            typeof arg === 'string'
+              ? `"${arg}"`
+              : typeof arg === 'boolean'
+              ? arg
+              : arg.eval();
+          return getValue(args[0]) === getValue(args[1]);
+        },
         toString: () =>
           wrapVariable(`(${args[0].toString()} == ${args[1].toString()})`),
-        stringify: () =>
-          unwrapVariable(`(${args[0].stringify()} == ${args[1].stringify()})`),
+        stringify: () => {
+          const getValue = (arg: Exp.ExpEqual['input'][number]) =>
+            typeof arg === 'string'
+              ? `"${arg}"`
+              : typeof arg === 'boolean'
+              ? arg
+              : arg.stringify();
+          return unwrapVariable(`(${getValue(args[0])} == ${getValue(args[1])})`);
+        },
       } satisfies Exp.ExpEqual),
-    /**
-     * Expression String Factory Function
-     *
-     * @example
-     *
-     * ```ts
-     * const exp = t.string('my-value');
-     * exp.eval() // Result: my-value
-     * ```
-     *
-     * @param args string
-     * @returns ExpString
-     */
-    string: (...args: Exp.ExpString['input']) =>
-      ({
-        input: [args[0]],
-        type: 'String',
-        eval: () => args[0],
-        toString: () => wrapVariable(`"${args[0]}"`),
-        stringify: () => unwrapVariable(`"${args[0]}"`),
-      } satisfies Exp.ExpString),
+    // /**
+    //  * Expression String Factory Function
+    //  *
+    //  * @example
+    //  *
+    //  * ```ts
+    //  * const exp = t.string('my-value');
+    //  * exp.eval() // Result: my-value
+    //  * ```
+    //  *
+    //  * @param args string
+    //  * @returns ExpString
+    //  */
+    // string: (...args: Exp.ExpString['input']) =>
+    //   ({
+    //     input: [args[0]],
+    //     type: 'String',
+    //     eval: () => args[0],
+    //     toString: () => wrapVariable(`"${args[0]}"`),
+    //     stringify: () => unwrapVariable(`"${args[0]}"`),
+    //   } satisfies Exp.ExpString),
 
-    /**
-     * Expression Boolean Factory Function
-     *
-     * @example
-     *
-     * ```ts
-     * t.boolean(true)
-     * ```
-     *
-     * @param args boolean
-     * @returns ExpBoolean
-     */
-    boolean: (...args: Exp.ExpBoolean['input']) =>
-      ({
-        input: [args[0]],
-        type: 'Boolean',
-        eval: () => args[0],
-        toString: () => wrapVariable(`${args[0]}`),
-        stringify: () => unwrapVariable(`${args[0]}`),
-      } satisfies Exp.ExpBoolean),
+    // /**
+    //  * Expression Boolean Factory Function
+    //  *
+    //  * @example
+    //  *
+    //  * ```ts
+    //  * t.boolean(true)
+    //  * ```
+    //  *
+    //  * @param args boolean
+    //  * @returns ExpBoolean
+    //  */
+    // boolean: (...args: Exp.ExpBoolean['input']) =>
+    //   ({
+    //     input: [args[0]],
+    //     type: 'Boolean',
+    //     eval: () => args[0],
+    //     toString: () => wrapVariable(`${args[0]}`),
+    //     stringify: () => unwrapVariable(`${args[0]}`),
+    //   } satisfies Exp.ExpBoolean),
     /**
      * Expression Contain Factory Function
      *
@@ -173,15 +188,23 @@ export function workflowHelper<TEnv, TNeeds extends string>(
       ({
         input: [args[0], args[1]],
         type: 'Contain',
-        eval: () => args[0].eval().includes(args[1].eval()),
+        eval: () => {
+          const text = typeof args[0] === 'string' ? args[0] : args[0].eval();
+          const searchWith =
+            typeof args[1] === 'string' ? args[1] : args[1].eval();
+          return text.includes(searchWith);
+        },
         toString: () =>
           wrapVariable(
             `contains(${args[0].toString()}, ${args[1].toString()})`
           ),
-        stringify: () =>
-          unwrapVariable(
-            `contains(${args[0].stringify()}, ${args[1].stringify()})`
-          ),
+        stringify: () => {
+          const text =
+            typeof args[0] === 'string' ? `"${args[0]}"` : args[0].stringify();
+          const searchWith =
+            typeof args[1] === 'string' ? `"${args[1]}"` : args[1].stringify();
+          return unwrapVariable(`contains(${text}, ${searchWith})`);
+        },
       } satisfies Exp.ExpContain),
     always: () =>
       ({
