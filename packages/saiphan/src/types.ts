@@ -4,21 +4,23 @@ export type AllowType = string | boolean;
 
 export type PullRequestEvent = {
   pullRequest: {
-    types: string[];
-    branches: string[];
+    types?: string[];
+    branches?: string[];
   };
 };
 
 export type PushEvent = {
   push: {
-    types: string[];
-    branches: string[];
+    types?: string[];
+    branches?: string[];
   };
 };
 
+export type WorkflowEvent = PullRequestEvent | PushEvent;
+
 export interface WorkflowOption<T extends Record<string, string>> {
   name?: string;
-  on: PullRequestEvent | PushEvent;
+  on: WorkflowEvent;
   env?: T;
 }
 

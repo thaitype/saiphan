@@ -4,6 +4,7 @@
 import { stripIndent } from 'common-tags';
 import {
   AllowType,
+  WorkflowEvent,
   WorkflowJobDetailBase,
   WorkflowOption,
   WorkflowStep,
@@ -201,9 +202,17 @@ export type JobDetailCallback<
 
 export interface Job extends Record<string, JobDetailCallback> {}
 
-export class Workflow {
+export class Workflow<TEnv extends Record<string, string>> {
   public job: Job = {};
-  constructor(private option: WorkflowOption<any>) {}
+  public name?: string;
+  public on: WorkflowEvent;
+  public env?: TEnv;
+
+  constructor(private option: WorkflowOption<TEnv>) {
+    this.name = option.name;
+    this.on = option.on;
+    this.env = option.env;
+  }
 
   public log() {
     console.log('GitHub Action Workflow Info:');
