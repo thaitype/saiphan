@@ -43,23 +43,9 @@ export function stringify(text: unknown){
 // add `& (string | number)` to the keyof ObjectType
 // Note: not support arrary
 
-type NestedKeyOf<TObject extends object> =
+export type NestedKeyOf<TObject extends object> =
   { [Key in keyof TObject & (string | number)]: TObject[Key] extends object
     ? `${Key}` | `${Key}.${NestedKeyOf<TObject[Key]>}`
     : `${Key}`
   }[keyof TObject & (string | number)];
 
-const person = {
-  name: 'thada',
-  age: 30,
-  address: {
-    country: 'Thailand',
-    type: {
-      inside: true,
-      outside: false,
-    }
-  }
-}
-
-declare function sort<T extends Object>(object: T, attr: NestedKeyOf<T>): any;
-sort(person, 'address.type.outside');
