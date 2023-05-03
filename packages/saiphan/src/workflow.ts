@@ -202,11 +202,16 @@ export type JobDetailCallback<
 
 export interface Job extends Record<string, JobDetailCallback> {}
 
+interface WorkflowData {
+}
+
 export class Workflow<TEnv extends Record<string, string>> {
   public job: Job = {};
   public name?: string;
   public on: WorkflowEvent;
   public env?: TEnv;
+
+  public data: WorkflowData = {};
 
   constructor(private option: WorkflowOption<TEnv>) {
     this.name = option.name;
@@ -231,6 +236,8 @@ export class Workflow<TEnv extends Record<string, string>> {
   }
 }
 
-export function initWorkflow(option: WorkflowOption<any>) {
+export function initWorkflow<TEnv extends Record<string, string>>(
+  option: WorkflowOption<TEnv>
+) {
   return new Workflow(option);
 }
