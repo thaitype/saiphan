@@ -112,6 +112,6 @@ export function initContextGithub<U extends EventOption<U>>(option: ContextGithu
 }
 
 declare function getData<T extends Object>(object: T, attr: NestedKeyOf<T>): any;
-getData(initContextGithub({}, initContextGithubEvent.push()), 'event.head_commit.id');
+getData(initContextGithub({}, initContextGithubEvent.pullRequest()), 'event.number');
 
 
