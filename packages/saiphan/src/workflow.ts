@@ -69,6 +69,12 @@ export function workflowHelper<TEnv, TNeeds extends string>(
        */
       outcome: wrapVariable(`steps.${stepId}.outcome`),
     }),
+
+    // --------------------------------------------------------------------------------
+    //
+    // Expression contexts
+    //
+    // --------------------------------------------------------------------------------
     /**
      * This context is only populated for workflow runs that have dependent jobs, and changes for each job in a workflow run. You can access this context from any job or step in a workflow. This object contains all the properties listed below.
      *
@@ -85,6 +91,12 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         stringify: () => unwrapVariable(`needs.${needAction}`),
       } satisfies Exp.ExpNeeds<TNeeds>),
 
+    /**
+     * Information about the workflow run.
+     * For more information, see [github context](https://docs.github.com/en/actions/learn-github-actions/contexts#github-context).
+     * @param args
+     * @returns
+     */
     github: (...args: Exp.ExpGithub['input']) =>
       ({
         input: [args[0]],
@@ -95,9 +107,11 @@ export function workflowHelper<TEnv, TNeeds extends string>(
       } satisfies Exp.ExpGithub),
 
     // --------------------------------------------------------------------------------
+    //
     // Github Expression
+    // Available expression contexts: `github`, `inputs`, `vars`, `needs`
+    //
     // --------------------------------------------------------------------------------
-    // exp: (exp: Exp.Expression) => wrapVariable(exp.toString()),
     /**
      * Expression Equal Factory Function
      *
@@ -173,17 +187,22 @@ export function workflowHelper<TEnv, TNeeds extends string>(
           );
         },
       } satisfies Exp.ExpContain),
-    always: () =>
-      ({
-        type: 'Always',
-        eval: () => true,
-        input: [],
-        toString: () => wrapVariable('always()'),
-        stringify: () => unwrapVariable('always()'),
-      } satisfies Exp.ExpAlways),
-
     and: (...args: string[]) => `(${args.join(' && ')})`,
     or: (...args: string[]) => `(${args.join(' || ')})`,
+    // --------------------------------------------------------------------------------
+    //
+    // Expression Functions
+    // Available expression functions: `always`, `failure`, `cancelled`, `success`
+    //
+    // --------------------------------------------------------------------------------
+    always: () =>
+    ({
+      type: 'Always',
+      eval: () => true,
+      input: [],
+      toString: () => wrapVariable('always()'),
+      stringify: () => unwrapVariable('always()'),
+    } satisfies Exp.ExpAlways),
     // --------------------------------------------------------------------------------
     // Helper
     // --------------------------------------------------------------------------------
@@ -202,8 +221,7 @@ export type JobDetailCallback<
 
 export interface Job extends Record<string, JobDetailCallback> {}
 
-interface WorkflowData {
-}
+interface WorkflowData {}
 
 export class Workflow<TEnv extends Record<string, string>> {
   public job: Job = {};
