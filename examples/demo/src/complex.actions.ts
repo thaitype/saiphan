@@ -1,6 +1,6 @@
 // saiphan
 import { initWorkflow } from 'saiphan';
-import '../.spn/example.actions.type';
+import '../.spn/complex.actions.type';
 
 // typed-actions helper.
 const workflow = initWorkflow({
