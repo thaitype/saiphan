@@ -1,5 +1,5 @@
 import test from 'ava';
-import { isWrapVariable, unwrapVariable, wrapVariable } from './utils';
+import { isWrapVariable, stringify, unwrapParentheses, unwrapVariable, wrapVariable } from './utils';
 
 test('test wrapVariable', t => {
   t.is(wrapVariable('test'), '${{ test }}');
@@ -37,3 +37,17 @@ test('test unwrapVariable', t => {
 
   t.is(unwrapVariable(undefined), '');
 });
+
+test('test unwrapParentheses', t => {
+  t.is(unwrapParentheses('(test)'), 'test');
+  t.is(unwrapParentheses('((test))'), '(test)');
+  t.is(unwrapParentheses(' (test) '), 'test');
+  t.is(unwrapParentheses(undefined), '');
+});
+
+
+test('test stringify', t => {
+  t.is(stringify('test'), '"test"');
+  t.is(stringify(1), '1');
+  t.is(stringify(true), 'true');
+})

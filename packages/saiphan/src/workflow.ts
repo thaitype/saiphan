@@ -9,7 +9,12 @@ import {
   WorkflowStep,
 } from './types';
 import * as Exp from './expression';
-import { unwrapVariable, wrapVariable } from './utils';
+import {
+  stringify,
+  unwrapParentheses,
+  unwrapVariable,
+  wrapVariable,
+} from './utils';
 
 /**
  * The value of a specific output.
@@ -111,7 +116,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         eval: () => {
           const getValue = (arg: Exp.ExpEqual['input'][number]) =>
             typeof arg === 'string'
-              ? `"${arg}"`
+              ? stringify(arg)
               : typeof arg === 'boolean'
               ? arg
               : arg.eval();
@@ -122,55 +127,15 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         stringify: () => {
           const getValue = (arg: Exp.ExpEqual['input'][number]) =>
             typeof arg === 'string'
-              ? `"${arg}"`
+              ? stringify(arg)
               : typeof arg === 'boolean'
               ? arg
               : arg.stringify();
-          return unwrapVariable(`(${getValue(args[0])} == ${getValue(args[1])})`);
+          return unwrapVariable(
+            `(${getValue(args[0])} == ${getValue(args[1])})`
+          );
         },
       } satisfies Exp.ExpEqual),
-    // /**
-    //  * Expression String Factory Function
-    //  *
-    //  * @example
-    //  *
-    //  * ```ts
-    //  * const exp = t.string('my-value');
-    //  * exp.eval() // Result: my-value
-    //  * ```
-    //  *
-    //  * @param args string
-    //  * @returns ExpString
-    //  */
-    // string: (...args: Exp.ExpString['input']) =>
-    //   ({
-    //     input: [args[0]],
-    //     type: 'String',
-    //     eval: () => args[0],
-    //     toString: () => wrapVariable(`"${args[0]}"`),
-    //     stringify: () => unwrapVariable(`"${args[0]}"`),
-    //   } satisfies Exp.ExpString),
-
-    // /**
-    //  * Expression Boolean Factory Function
-    //  *
-    //  * @example
-    //  *
-    //  * ```ts
-    //  * t.boolean(true)
-    //  * ```
-    //  *
-    //  * @param args boolean
-    //  * @returns ExpBoolean
-    //  */
-    // boolean: (...args: Exp.ExpBoolean['input']) =>
-    //   ({
-    //     input: [args[0]],
-    //     type: 'Boolean',
-    //     eval: () => args[0],
-    //     toString: () => wrapVariable(`${args[0]}`),
-    //     stringify: () => unwrapVariable(`${args[0]}`),
-    //   } satisfies Exp.ExpBoolean),
     /**
      * Expression Contain Factory Function
      *
@@ -181,29 +146,30 @@ export function workflowHelper<TEnv, TNeeds extends string>(
      * exp.eval() // Result: true
      * ```
      *
-     * @param args boolean
-     * @returns ExpBoolean
+     * @param args_0 ExpressionString | ExpGithub | ExpNeeds | string
+     * @param args_1 ExpressionString | ExpGithub | ExpNeeds | string
+     * @returns ExpContain
      */
     contain: (...args: Exp.ExpContain['input']) =>
       ({
         input: [args[0], args[1]],
         type: 'Contain',
         eval: () => {
-          const text = typeof args[0] === 'string' ? args[0] : args[0].eval();
-          const searchWith =
-            typeof args[1] === 'string' ? args[1] : args[1].eval();
-          return text.includes(searchWith);
+          const getValue = (arg: Exp.ExpContain['input'][number]) =>
+            typeof arg === 'string' ? arg : arg.eval();
+          return getValue(args[0]).includes(getValue(args[1]));
         },
+
         toString: () =>
           wrapVariable(
             `contains(${args[0].toString()}, ${args[1].toString()})`
           ),
         stringify: () => {
-          const text =
-            typeof args[0] === 'string' ? `"${args[0]}"` : args[0].stringify();
-          const searchWith =
-            typeof args[1] === 'string' ? `"${args[1]}"` : args[1].stringify();
-          return unwrapVariable(`contains(${text}, ${searchWith})`);
+          const getValue = (arg: Exp.ExpContain['input'][number]) =>
+            typeof arg === 'string' ? stringify(arg) : arg.stringify();
+          return unwrapVariable(
+            `contains(${getValue(args[0])}, ${getValue(args[1])})`
+          );
         },
       } satisfies Exp.ExpContain),
     always: () =>
@@ -246,7 +212,7 @@ export class Workflow {
     console.log('Jobs Info:');
     for (const [jobId, callback] of Object.entries(this.job)) {
       const job = callback(workflowHelper(this.option));
-      console.log(`Job If: ${job.if?.stringify()}`);
+      console.log(`Job If: ${unwrapParentheses(job.if?.stringify())}`);
       console.log(`Job: ${jobId}`);
       console.log(
         JSON.stringify(callback(workflowHelper(this.option)), null, 2)
