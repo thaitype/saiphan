@@ -1,15 +1,18 @@
 import test from 'ava';
 import workflow from './basic.actions';
+import '../.spn/complex.actions.type';
 import { NestedKeyOf, initContextGithub, initContextGithubEvent } from 'saiphan';
 
 // When run the unit test, the workflow will perform expression `.eval()` function
-declare function getData<T extends Object>(object: T, attr: NestedKeyOf<T>): any;
+// declare function getData<T extends Object>(object: T, attr: NestedKeyOf<T>): any;
 
-const data = {
-  github: initContextGithub({}, initContextGithubEvent.pullRequest()),
-}
+// const data = {
+//   github: initContextGithub({}, initContextGithubEvent.pullRequest()),
+// };
 
-getData(data.github, 'event.number');
+// workflow.
+
+// getData(data.github, 'event.number');
 
 test('basic actions', (t) => {
   t.not(workflow, undefined);

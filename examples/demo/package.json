@@ -4,7 +4,7 @@
   "description": "Saiphan demo example",
   "main": "index.ts",
   "scripts": {
-    "start": "tsx src/example.actions.ts",
+    "start": "tsx src/basic.actions.ts",
     "test": "ava",
     "test:watch": "ava --watch"
   },

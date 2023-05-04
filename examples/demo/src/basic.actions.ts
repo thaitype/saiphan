@@ -1,8 +1,7 @@
 
-
+// saiphan@0.0.0
 import { initWorkflow } from 'saiphan';
 
-// typed-actions helper.
 const workflow = initWorkflow({
   name: 'my-workflow',
   on: {
@@ -22,5 +21,6 @@ workflow.job.happyJob = (t) => ({
   ],
 });
 
+workflow.log();
 
 export default workflow;
