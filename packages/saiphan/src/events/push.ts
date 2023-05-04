@@ -196,6 +196,6 @@ export function initWorkflowPushEvent(option: ContextGithubEventOption_Push = {}
   };
   return {
     event,
-    eventName: 'push'
+    eventName: 'push' as const
   }
 }

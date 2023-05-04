@@ -26,19 +26,19 @@ export interface ContextGithubOption {
   // event_name?: string;
   workflow?: string;
   repository_visibility?: string;
-  username?: string;
-  email?: string;
-  name?: string;
-  commit_message?: string;
+  // username?: string;
+  // email?: string;
+  // name?: string;
+  // commit_message?: string;
   ref?: string;
   jobId?: string;
 }
 
 export type AllEvent = 'push' | 'pull_request' | 'workflow_dispatch';
 
-export type EventOption<U extends { eventName: string; event: U['event'] }>  = {
+export type EventOption<U extends { eventName: string; event: U['event'] }> = {
   eventName: string;
-  event: U['event']
+  event: U['event'];
 };
 
 /**
@@ -46,15 +46,18 @@ export type EventOption<U extends { eventName: string; event: U['event'] }>  = {
  * @param option
  * @returns
  */
-export function initContextGithub<U extends EventOption<U>>(option: ContextGithubOption = {}, eventOption: U) {
+export function initContextGithub<U extends EventOption<U>>(
+  option: ContextGithubOption = {},
+  eventOption: U = initContextGithubEvent.unknown() as U
+) {
   const owner = option.owner ?? 'mildronize';
   const repo = option.repo ?? 'saiphan';
   const workflow = option.workflow ?? '${workflow}';
   const repository_visibility = option.repository_visibility ?? 'public';
-  const username = option.username ?? 'mildronize';
-  const email = option.email ?? 'john@email.com';
-  const name = option.name ?? 'John Doe';
-  const commit_message = option.commit_message ?? 'Update README.md';
+  // const username = option.username ?? 'mildronize';
+  // const email = option.email ?? 'john@email.com';
+  // const name = option.name ?? 'John Doe';
+  // const commit_message = option.commit_message ?? 'Update README.md';
   const ref = option.ref ?? 'refs/heads/main';
   const jobId = option.jobId ?? 'build';
 
@@ -113,5 +116,3 @@ export function initContextGithub<U extends EventOption<U>>(option: ContextGithu
 
 // declare function getData<T extends Object>(object: T, attr: NestedKeyOf<T>): any;
 // getData(initContextGithub({}, initContextGithubEvent.pullRequest()), 'event.number');
-
-

@@ -500,6 +500,6 @@ export function initWorkflowPullRequestEvent(option: ContextGithubEventOption_Pu
   };
   return {
     event,
-    eventName: 'pull_request',
+    eventName: 'pull_request' as const,
   };
 }
