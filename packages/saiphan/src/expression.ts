@@ -1,8 +1,4 @@
-export interface ExpBase<
-  TType extends string,
-  TInput extends unknown[],
-  TOutput
-> {
+export interface ExpBase<TType extends string, TInput extends unknown[], TOutput> {
   type: TType;
   input: TInput;
   eval: () => TOutput;
@@ -29,11 +25,7 @@ export type ExpEqual = ExpBase<'Equal', [ExpEqualParam, ExpEqualParam], boolean>
  * Return Type Expression Contain
  */
 type ExpContainParam = ExpressionString | ExpGithub | ExpNeeds | string;
-export type ExpContain = ExpBase<
-  'Contain',
-  [ExpContainParam, ExpContainParam],
-  boolean
->;
+export type ExpContain = ExpBase<'Contain', [ExpContainParam, ExpContainParam], boolean>;
 /**
  * Return Type Expression Always
  * @note Return true always
@@ -45,21 +37,13 @@ export type ExpAlways = ExpBase<'Always', [], true>;
  * Return Type Expression Needs
  * TODO: Eval function require mock value when running test
  */
-export type ExpNeeds<TNeed extends string = string, TOutput = any> = ExpBase<
-  'Needs',
-  [TNeed],
-  TOutput
->;
+export type ExpNeeds<TNeed extends string = string, TOutput = any> = ExpBase<'Needs', [TNeed], TOutput>;
 
 /**
  * Return Type Expression Github
  * TODO: Eval function require mock value when running test
  */
-export type ExpGithub<TOutput = any> = ExpBase<
-  'Github',
-  [string | undefined],
-  TOutput
->;
+export type ExpGithub<TInput extends string = string, TOutput = any> = ExpBase<'Github', [TInput | undefined], TOutput>;
 // ----------------------------
 
 export type ExpressionBoolean = ExpEqual | ExpContain | ExpAlways;
@@ -68,11 +52,7 @@ export type ExpressionString = never;
 /**
  * All Available Expressions
  */
-export type Expression =
-  | ExpressionBoolean
-  | ExpressionString
-  | ExpGithub
-  | ExpNeeds;
+export type Expression = ExpressionBoolean | ExpressionString | ExpGithub | ExpNeeds;
 
 // const expression: Expression = t.equal(
 //   t.equal(t.string('555'), t.string('555')),

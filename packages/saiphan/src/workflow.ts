@@ -2,19 +2,11 @@
 // https://dagger.io/blog/nodejs-sdk
 
 import { stripIndent } from 'common-tags';
-import {
-  AllowType,
-  WorkflowJobDetailBase,
-  WorkflowOption,
-  WorkflowStep,
-} from './types';
+import { AllowType, WorkflowEvent, WorkflowJobDetailBase, WorkflowOption, WorkflowStep } from './types';
 import * as Exp from './expression';
-import {
-  stringify,
-  unwrapParentheses,
-  unwrapVariable,
-  wrapVariable,
-} from './utils';
+import { NestedKeyOf, getNestedValue, stringify, unwrapParentheses, unwrapVariable, wrapVariable } from './utils';
+import { initContextGithub } from './context';
+import { initContextGithubEvent } from './events';
 
 /**
  * The value of a specific output.
@@ -27,9 +19,7 @@ function stepOutputs(stepId: string, key: string) {
   return wrapVariable(`steps.${stepId}.outputs.${key}`);
 }
 
-export function workflowHelper<TEnv, TNeeds extends string>(
-  option: WorkflowOption<any>
-) {
+export function workflowHelper<TEnv, TNeeds extends string>(option: WorkflowOption<any>, data: WorkflowData) {
   return {
     // jobs: (jobs: WorkflowJob<any>) => jobs,
     // TODO: Transform to AST later
@@ -68,6 +58,12 @@ export function workflowHelper<TEnv, TNeeds extends string>(
        */
       outcome: wrapVariable(`steps.${stepId}.outcome`),
     }),
+
+    // --------------------------------------------------------------------------------
+    //
+    // Expression contexts
+    //
+    // --------------------------------------------------------------------------------
     /**
      * This context is only populated for workflow runs that have dependent jobs, and changes for each job in a workflow run. You can access this context from any job or step in a workflow. This object contains all the properties listed below.
      *
@@ -79,24 +75,34 @@ export function workflowHelper<TEnv, TNeeds extends string>(
       ({
         input: [needAction],
         type: 'Needs',
-        eval: () => 'undefined mock data',
+        eval: () => {
+          throw new Error(`Needs.eval() is not implemented, params: ${needAction}`);
+        },
         toString: () => wrapVariable(`needs.${needAction}`),
         stringify: () => unwrapVariable(`needs.${needAction}`),
       } satisfies Exp.ExpNeeds<TNeeds>),
 
-    github: (...args: Exp.ExpGithub['input']) =>
+    /**
+     * Information about the workflow run.
+     * For more information, see [github context](https://docs.github.com/en/actions/learn-github-actions/contexts#github-context).
+     * @param args
+     * @returns
+     */
+    github: (...args: Exp.ExpGithub<NestedKeyOf<ReturnType<typeof initContextGithub>>>['input']) =>
       ({
         input: [args[0]],
         type: 'Github',
-        eval: () => 'undefined mock data',
+        eval: () => getNestedValue(data.github, args[0] as string),
         toString: () => wrapVariable(['github', args[0]].join('.')),
         stringify: () => unwrapVariable(['github', args[0]].join('.')),
       } satisfies Exp.ExpGithub),
 
     // --------------------------------------------------------------------------------
+    //
     // Github Expression
+    // Available expression contexts: `github`, `inputs`, `vars`, `needs`
+    //
     // --------------------------------------------------------------------------------
-    // exp: (exp: Exp.Expression) => wrapVariable(exp.toString()),
     /**
      * Expression Equal Factory Function
      *
@@ -115,25 +121,14 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         input: [args[0], args[1]],
         eval: () => {
           const getValue = (arg: Exp.ExpEqual['input'][number]) =>
-            typeof arg === 'string'
-              ? stringify(arg)
-              : typeof arg === 'boolean'
-              ? arg
-              : arg.eval();
+            typeof arg === 'string' ? stringify(arg) : typeof arg === 'boolean' ? arg : arg.eval();
           return getValue(args[0]) === getValue(args[1]);
         },
-        toString: () =>
-          wrapVariable(`(${args[0].toString()} == ${args[1].toString()})`),
+        toString: () => wrapVariable(`(${args[0].toString()} == ${args[1].toString()})`),
         stringify: () => {
           const getValue = (arg: Exp.ExpEqual['input'][number]) =>
-            typeof arg === 'string'
-              ? stringify(arg)
-              : typeof arg === 'boolean'
-              ? arg
-              : arg.stringify();
-          return unwrapVariable(
-            `(${getValue(args[0])} == ${getValue(args[1])})`
-          );
+            typeof arg === 'string' ? stringify(arg) : typeof arg === 'boolean' ? arg : arg.stringify();
+          return unwrapVariable(`(${getValue(args[0])} == ${getValue(args[1])})`);
         },
       } satisfies Exp.ExpEqual),
     /**
@@ -155,23 +150,25 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         input: [args[0], args[1]],
         type: 'Contain',
         eval: () => {
-          const getValue = (arg: Exp.ExpContain['input'][number]) =>
-            typeof arg === 'string' ? arg : arg.eval();
+          const getValue = (arg: Exp.ExpContain['input'][number]) => (typeof arg === 'string' ? arg : arg.eval());
           return getValue(args[0]).includes(getValue(args[1]));
         },
 
-        toString: () =>
-          wrapVariable(
-            `contains(${args[0].toString()}, ${args[1].toString()})`
-          ),
+        toString: () => wrapVariable(`contains(${args[0].toString()}, ${args[1].toString()})`),
         stringify: () => {
           const getValue = (arg: Exp.ExpContain['input'][number]) =>
             typeof arg === 'string' ? stringify(arg) : arg.stringify();
-          return unwrapVariable(
-            `contains(${getValue(args[0])}, ${getValue(args[1])})`
-          );
+          return unwrapVariable(`contains(${getValue(args[0])}, ${getValue(args[1])})`);
         },
       } satisfies Exp.ExpContain),
+    and: (...args: string[]) => `(${args.join(' && ')})`,
+    or: (...args: string[]) => `(${args.join(' || ')})`,
+    // --------------------------------------------------------------------------------
+    //
+    // Expression Functions
+    // Available expression functions: `always`, `failure`, `cancelled`, `success`
+    //
+    // --------------------------------------------------------------------------------
     always: () =>
       ({
         type: 'Always',
@@ -180,9 +177,6 @@ export function workflowHelper<TEnv, TNeeds extends string>(
         toString: () => wrapVariable('always()'),
         stringify: () => unwrapVariable('always()'),
       } satisfies Exp.ExpAlways),
-
-    and: (...args: string[]) => `(${args.join(' && ')})`,
-    or: (...args: string[]) => `(${args.join(' || ')})`,
     // --------------------------------------------------------------------------------
     // Helper
     // --------------------------------------------------------------------------------
@@ -201,27 +195,61 @@ export type JobDetailCallback<
 
 export interface Job extends Record<string, JobDetailCallback> {}
 
-export class Workflow {
+interface WorkflowData {
+  env?: unknown;
+  jobs?: unknown;
+  github?: any;
+}
+
+export class Workflow<TEnv extends Record<string, string>> {
   public job: Job = {};
-  constructor(private option: WorkflowOption<any>) {}
+  public name?: string;
+  public on: WorkflowEvent;
+  public env?: TEnv;
+
+  constructor(private option: WorkflowOption<TEnv>, public data: WorkflowData) {
+    this.name = option.name;
+    this.on = option.on;
+    this.env = option.env;
+  }
+
+  public getJob(key: string) {
+    const callback = this.job[key];
+    return callback(workflowHelper(this.option, this.data));
+  }
 
   public log() {
     console.log('GitHub Action Workflow Info:');
     console.log(JSON.stringify(this.option, null, 2));
     console.log('=============================');
     console.log('Jobs Info:');
-    for (const [jobId, callback] of Object.entries(this.job)) {
-      const job = callback(workflowHelper(this.option));
+    for (const jobId of Object.keys(this.job)) {
+      const job = this.getJob(jobId);
       console.log(`Job If: ${unwrapParentheses(job.if?.stringify())}`);
       console.log(`Job: ${jobId}`);
-      console.log(
-        JSON.stringify(callback(workflowHelper(this.option)), null, 2)
-      );
+      console.log(JSON.stringify(job, null, 2));
       console.log('-----------------------------');
     }
   }
 }
 
-export function initWorkflow(option: WorkflowOption<any>) {
-  return new Workflow(option);
+export function initWorkflow<TEnv extends Record<string, string>>(option: WorkflowOption<TEnv>): Workflow<TEnv>;
+export function initWorkflow<TEnv extends Record<string, string>>(
+  data: WorkflowData,
+  option: WorkflowOption<TEnv>
+): Workflow<TEnv>;
+
+export function initWorkflow<TEnv extends Record<string, string>>(
+  optionOrData: WorkflowOption<TEnv> | WorkflowData,
+  option?: WorkflowOption<TEnv>
+) {
+  if('on' in optionOrData) {
+    return new Workflow(optionOrData, {
+      github: initContextGithub(),
+    });
+  }
+  if(!option) {
+    throw new Error('Invalid option');
+  }
+  return new Workflow(option, optionOrData);
 }
