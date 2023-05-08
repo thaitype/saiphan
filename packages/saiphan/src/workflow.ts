@@ -74,7 +74,9 @@ export function workflowHelper<TEnv, TNeeds extends string>(option: WorkflowOpti
       ({
         input: [needAction],
         type: 'Needs',
-        eval: () => 'undefined mock data',
+        eval: () => {
+          throw new Error(`Needs.eval() is not implemented, params: ${needAction}`);
+        },
         toString: () => wrapVariable(`needs.${needAction}`),
         stringify: () => unwrapVariable(`needs.${needAction}`),
       } satisfies Exp.ExpNeeds<TNeeds>),
@@ -89,7 +91,9 @@ export function workflowHelper<TEnv, TNeeds extends string>(option: WorkflowOpti
       ({
         input: [args[0]],
         type: 'Github',
-        eval: () => 'undefined mock data',
+        eval: () => {
+          throw new Error(`Github.eval() is not implemented, params: ${args[0]}`);
+        },
         toString: () => wrapVariable(['github', args[0]].join('.')),
         stringify: () => unwrapVariable(['github', args[0]].join('.')),
       } satisfies Exp.ExpGithub),
@@ -207,6 +211,11 @@ export class Workflow<TEnv extends Record<string, string>> {
     this.name = option.name;
     this.on = option.on;
     this.env = option.env;
+  }
+
+  public getJob(key: string) {
+    const callback = this.job[key];
+    return callback(workflowHelper(this.option));
   }
 
   public log() {

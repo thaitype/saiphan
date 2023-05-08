@@ -1,6 +1,6 @@
 import test from 'ava';
 import workflow from './basic.actions';
-import '../.spn/complex.actions.type';
+// import '../.spn/complex.actions.type';
 import { NestedKeyOf, initContextGithub, initContextGithubEvent } from 'saiphan';
 
 // When run the unit test, the workflow will perform expression `.eval()` function
@@ -21,6 +21,10 @@ test('basic actions', (t) => {
     t.deepEqual(workflow.on?.pullRequest?.types, ['opened']);
   }
   t.deepEqual(Object.keys(workflow.job), ['happyJob']);
+});
+
+test('Test github expression', (t) => {
+  t.is(workflow.getJob('happyJob')?.if?.eval(), true);
 });
 
 // The test helper should provide a way to mock the `github` context
