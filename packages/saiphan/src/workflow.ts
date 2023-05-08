@@ -4,8 +4,9 @@
 import { stripIndent } from 'common-tags';
 import { AllowType, WorkflowEvent, WorkflowJobDetailBase, WorkflowOption, WorkflowStep } from './types';
 import * as Exp from './expression';
-import { NestedKeyOf, stringify, unwrapParentheses, unwrapVariable, wrapVariable } from './utils';
+import { NestedKeyOf, getNestedValue, stringify, unwrapParentheses, unwrapVariable, wrapVariable } from './utils';
 import { initContextGithub } from './context';
+import { initContextGithubEvent } from './events';
 
 /**
  * The value of a specific output.
@@ -18,7 +19,7 @@ function stepOutputs(stepId: string, key: string) {
   return wrapVariable(`steps.${stepId}.outputs.${key}`);
 }
 
-export function workflowHelper<TEnv, TNeeds extends string>(option: WorkflowOption<any>) {
+export function workflowHelper<TEnv, TNeeds extends string>(option: WorkflowOption<any>, data: WorkflowData) {
   return {
     // jobs: (jobs: WorkflowJob<any>) => jobs,
     // TODO: Transform to AST later
@@ -91,9 +92,7 @@ export function workflowHelper<TEnv, TNeeds extends string>(option: WorkflowOpti
       ({
         input: [args[0]],
         type: 'Github',
-        eval: () => {
-          throw new Error(`Github.eval() is not implemented, params: ${args[0]}`);
-        },
+        eval: () => getNestedValue(data.github, args[0] as string),
         toString: () => wrapVariable(['github', args[0]].join('.')),
         stringify: () => unwrapVariable(['github', args[0]].join('.')),
       } satisfies Exp.ExpGithub),
@@ -197,8 +196,9 @@ export type JobDetailCallback<
 export interface Job extends Record<string, JobDetailCallback> {}
 
 interface WorkflowData {
-  env: unknown;
-  jobs: unknown;
+  env?: unknown;
+  jobs?: unknown;
+  github?: any;
 }
 
 export class Workflow<TEnv extends Record<string, string>> {
@@ -207,7 +207,7 @@ export class Workflow<TEnv extends Record<string, string>> {
   public on: WorkflowEvent;
   public env?: TEnv;
 
-  constructor(private option: WorkflowOption<TEnv>, private data?: WorkflowData) {
+  constructor(private option: WorkflowOption<TEnv>, public data: WorkflowData) {
     this.name = option.name;
     this.on = option.on;
     this.env = option.env;
@@ -215,7 +215,7 @@ export class Workflow<TEnv extends Record<string, string>> {
 
   public getJob(key: string) {
     const callback = this.job[key];
-    return callback(workflowHelper(this.option));
+    return callback(workflowHelper(this.option, this.data));
   }
 
   public log() {
@@ -223,16 +223,33 @@ export class Workflow<TEnv extends Record<string, string>> {
     console.log(JSON.stringify(this.option, null, 2));
     console.log('=============================');
     console.log('Jobs Info:');
-    for (const [jobId, callback] of Object.entries(this.job)) {
-      const job = callback(workflowHelper(this.option));
+    for (const jobId of Object.keys(this.job)) {
+      const job = this.getJob(jobId);
       console.log(`Job If: ${unwrapParentheses(job.if?.stringify())}`);
       console.log(`Job: ${jobId}`);
-      console.log(JSON.stringify(callback(workflowHelper(this.option)), null, 2));
+      console.log(JSON.stringify(job, null, 2));
       console.log('-----------------------------');
     }
   }
 }
 
-export function initWorkflow<TEnv extends Record<string, string>>(option: WorkflowOption<TEnv>) {
-  return new Workflow(option);
+export function initWorkflow<TEnv extends Record<string, string>>(option: WorkflowOption<TEnv>): Workflow<TEnv>;
+export function initWorkflow<TEnv extends Record<string, string>>(
+  data: WorkflowData,
+  option: WorkflowOption<TEnv>
+): Workflow<TEnv>;
+
+export function initWorkflow<TEnv extends Record<string, string>>(
+  optionOrData: WorkflowOption<TEnv> | WorkflowData,
+  option?: WorkflowOption<TEnv>
+) {
+  if('on' in optionOrData) {
+    return new Workflow(optionOrData, {
+      github: initContextGithub(),
+    });
+  }
+  if(!option) {
+    throw new Error('Invalid option');
+  }
+  return new Workflow(option, optionOrData);
 }

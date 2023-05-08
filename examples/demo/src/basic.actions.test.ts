@@ -1,18 +1,6 @@
 import test from 'ava';
 import workflow from './basic.actions';
-// import '../.spn/complex.actions.type';
-import { NestedKeyOf, initContextGithub, initContextGithubEvent } from 'saiphan';
-
-// When run the unit test, the workflow will perform expression `.eval()` function
-// declare function getData<T extends Object>(object: T, attr: NestedKeyOf<T>): any;
-
-// const data = {
-//   github: initContextGithub({}, initContextGithubEvent.pullRequest()),
-// };
-
-// workflow.
-
-// getData(data.github, 'event.number');
+import _ from 'lodash';
 
 test('basic actions', (t) => {
   t.not(workflow, undefined);
@@ -24,7 +12,7 @@ test('basic actions', (t) => {
 });
 
 test('Test github expression', (t) => {
+  _.set(workflow.data, 'github.event.pull_request.title', 'Happy PR');
   t.is(workflow.getJob('happyJob')?.if?.eval(), true);
 });
 
-// The test helper should provide a way to mock the `github` context
