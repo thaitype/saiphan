@@ -51,6 +51,11 @@ test('test stringify', (t) => {
   t.is(stringify(true), 'true');
 });
 
+
+// echo "${{ toJSON(github.event.commits) }}"
+// echo "${{ toJSON(github.event.commits[0].message) }}"
+// echo "${{ toJSON(github.event.commits.*.message) }}"
+
 test('test getNestedValue', (t) => {
   t.is(getNestedValue({ name: 'data' }, 'name'), 'data');
   t.is(getNestedValue({ name: { data: 'data' } }, 'name.data'), 'data');

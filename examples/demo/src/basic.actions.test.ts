@@ -16,3 +16,7 @@ test('Test github expression', (t) => {
   t.is(workflow.getJob('happyJob')?.if?.eval(), true);
 });
 
+
+// workflow.github.set('event.pull_request.title', 'Happy PR');
+// workflow.data.set('github.event.pull_request.title', 'Happy PR')
+// workflow.data.clear();
