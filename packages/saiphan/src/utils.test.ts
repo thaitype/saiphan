@@ -1,5 +1,5 @@
 import test from 'ava';
-import { getNestedValue, isWrapVariable, stringify, unwrapParentheses, unwrapVariable, wrapVariable } from './utils';
+import { NestedKeyOf, getNestedValue, isWrapVariable, stringify, unwrapParentheses, unwrapVariable, wrapVariable } from './utils';
 
 test('test wrapVariable', (t) => {
   t.is(wrapVariable('test'), '${{ test }}');
@@ -58,3 +58,30 @@ test('test getNestedValue', (t) => {
   // @ts-expect-error
   t.is(getNestedValue({ name: { data: 'data' } }, 'name.data.data'), undefined);
 });
+
+
+const data = {
+  numbers: [
+    {
+      name: 'thada',
+      age: 30,
+      item: ['a', 'b', 'c'],
+    },
+  ],
+  test: {
+    demo: 'demo',
+    myData: {
+      aaa: 'bbb',
+    },
+  },
+};
+
+// TObject[Tkey] extends Array<infer TArray>
+//           ? `${Tkey}[${NestedKeyOf<TObject[Tkey]>}]` | `${Tkey}[${NestedKeyOf<TObject[Tkey]>}].${NestedKeyOf<TArray>}`
+//           :
+
+type AAAA = NestedKeyOf<typeof data>;
+//   ^?
+// const option: AAAA = '';
+// const option2: BBBB = 'numbers.0.name';
+// const option3: AAAA = 'numbers[0]';

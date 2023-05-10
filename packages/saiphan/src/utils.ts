@@ -39,12 +39,40 @@ export function stringify(text: unknown) {
 // add `& (string | number)` to the keyof ObjectType
 // Note: not support arrary
 
-export type NestedKeyOf<TObject extends object> = {
-  [Key in keyof TObject & (string | number)]: TObject[Key] extends object
-    ? `${Key}` | `${Key}.${NestedKeyOf<TObject[Key]>}`
-    : `${Key}`;
-}[keyof TObject & (string | number)];
+type B = keyof object & (string | number);
 
+// export type NestedKeyOf<TObject extends object> = {
+//   [Key in keyof TObject & (string | number)]: TObject[Key] extends object
+//     ? `${Key}` | `${Key}.${NestedKeyOf<TObject[Key]>}`
+//     : `${Key}`;
+// }[keyof TObject & (string | number)];
+
+type NestedKeyOf2<T, K = keyof T> = K extends keyof T & (string | number)
+  ? `${K}` | (T[K] extends object ? `${K}.${NestedKeyOf<T[K]>}` : never)
+  : never;
+
+// TObject[Tkey] extends Array<unknown>
+// ? `${Tkey}[${NestedKeyOf<TObject[Tkey]>}]`
+// :
+
+// type NestedKeyOf<TObject, Tkey = keyof TObject> = Tkey extends keyof TObject & (string | number)
+//   ?
+//       | `${Tkey}`
+//       | (TObject[Tkey] extends object ? `${Tkey}.${NestedKeyOf<TObject[Tkey]>}` : never)
+//       | (TObject[Tkey] extends Array<unknown> ? `${Tkey}[${NestedKeyOf<TObject[Tkey]>[number]}].` : never)
+//   : never;
+
+export type NestedKeyOf<TObject, Tkey = keyof TObject> = Tkey extends keyof TObject & (string)
+  ?
+      | `${Tkey}`
+      | (TObject[Tkey] extends object
+          ? TObject[Tkey] extends Array<infer TArray>
+            ? `${Tkey}[${NestedKeyOf<TArray>}]`
+            : `${Tkey}.${NestedKeyOf<TObject[Tkey]>}`
+          : never)
+  : never;
+
+//
 // https://devcontent.net/pavel_salauyou/how-to-get-nested-objects-or-array-value-by-string-path-in-typescript-3kd1
 // TODO: Fix type later
 export function getNestedValue<TObject extends object>(obj: TObject, path: string): any {
